@@ -28,9 +28,13 @@
    
    8. META/SEO: Edit src/app/layout.tsx
       - Page title, description, keywords
+
+   9. BACKGROUND ANIMATION: Edit src/components/medical-background.tsx
+      - Add/remove floating medical equipment shapes
    ============================================= */
 
 import { Header } from "@/components/header";
+import { MedicalBackground } from "@/components/medical-background";
 import { HeroSection } from "@/components/hero-section";
 import { DepartmentsSection } from "@/components/departments-section";
 import { GallerySection } from "@/components/gallery-section";
@@ -41,11 +45,16 @@ export default function Home() {
   return (
     /* Main wrapper: min-h-screen + flex-col ensures sticky footer works */
     <div className="min-h-screen flex flex-col">
+      {/* === FLOATING MEDICAL EQUIPMENT BACKGROUND ===
+          Subtle animated SVG shapes (ECG, syringe, stethoscope, etc.)
+          EDIT: src/components/medical-background.tsx */}
+      <MedicalBackground />
+
       {/* Fixed navigation header */}
       <Header />
 
       {/* Main content area - grows to push footer down */}
-      <main className="flex-1">
+      <main className="flex-1 relative z-10">
         {/* Home / Hero Section */}
         <HeroSection />
 
