@@ -70,7 +70,7 @@ export function Header() {
             {/* Hospital name next to logo */}
             <div className="flex flex-col">
               <span className="text-base sm:text-lg font-bold bg-gradient-to-l from-primary to-medical-dark bg-clip-text text-transparent leading-tight">
-                نەخۆشخانەی پیرەمام
+                نەخۆشخانەی پیرمام
               </span>
               <span className="text-[10px] sm:text-xs text-muted-foreground leading-tight">
                 Pirmam Hospital

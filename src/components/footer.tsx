@@ -26,7 +26,7 @@ import {
    ============================================= */
 
 /* Hospital name */
-const hospitalNameKu = "نەخۆشخانەی پیرەمام";
+const hospitalNameKu = "نەخۆشخانەی پیرمام";
 const hospitalNameEn = "Pirmam Hospital";
 
 /* Phone numbers - EDIT with real numbers */
@@ -39,7 +39,7 @@ const phoneNumbers = [
 const emailAddress = "info@pirmam-hospital.com";
 
 /* Address - EDIT with real address */
-const addressKu = "شارەزانی پیرەمام، هەولێر، هەرێمی کوردستان، عێراق";
+const addressKu = "شارەزانی پیرمام، هەولێر، هەرێمی کوردستان، عێراق";
 
 /* Working hours - EDIT with real hours */
 const workingHours = "٢٤ کاتژمێر - ٧ ڕۆژ لە هەفتە";
@@ -97,7 +97,7 @@ export function Footer() {
               </div>
             </div>
             <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-xs">
-              نەخۆشخانەی پیرەمام بە پێشەنگی تەکنەلۆژیا و تیمی پزیشکی شارەزا، باشترین خزمەتگوزاری تەندروستی پێشکەش دەکات.
+              نەخۆشخانەی پیرمام بە پێشەنگی تەکنەلۆژیا و تیمی پزیشکی شارەزا، باشترین خزمەتگوزاری تەندروستی پێشکەش دەکات.
             </p>
           </div>
 
@@ -172,7 +172,7 @@ export function Footer() {
           <div className="flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-muted-foreground">
             {/* Copyright & branding protection */}
             <div className="text-center sm:text-right">
-              © {new Date().getFullYear()} {hospitalNameKu}. هەموو مافەکان پارێزراون. ئەم ماڵپەڕە تایبەتە بە نەخۆشخانەی پیرەمام.
+              © {new Date().getFullYear()} {hospitalNameKu}. هەموو مافەکان پارێزراون. ئەم ماڵپەڕە تایبەتە بە نەخۆشخانەی پیرمام.
             </div>
 
             {/* Developer credit - small font as requested */}

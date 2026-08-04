@@ -23,11 +23,11 @@ const geistMono = Geist_Mono({
 /* === SEO & Meta Information === 
    EDIT: Update the title, description, and keywords below */
 export const metadata: Metadata = {
-  title: "نەخۆشخانەی پیرەمام | Pirmam Hospital",
+  title: "نەخۆشخانەی پیرمام | Pirmam Hospital",
   description:
-    "نەخۆشخانەی پیرەمام - خزمەتگوزاری تەندروستی بەرز بۆ هەموو خەڵکی کوردستان. Pirmam Hospital - Premium Healthcare Services for all of Kurdistan.",
+    "نەخۆشخانەی پیرمام - خزمەتگوزاری تەندروستی بەرز بۆ هەموو خەڵکی کوردستان. Pirmam Hospital - Premium Healthcare Services for all of Kurdistan.",
   keywords: [
-    "نەخۆشخانەی پیرەمام",
+    "نەخۆشخانەی پیرمام",
     "Pirmam Hospital",
     "نەخۆشخانە",
     "تەندروستی",

@@ -21,7 +21,7 @@ import { Button } from "@/components/ui/button";
 const galleryImages = [
   {
     src: "/gallery/placeholder-1.jpg",
-    alt: "دەرەوەی نەخۆشخانەی پیرەمام",
+    alt: "دەرەوەی نەخۆشخانەی پیرمام",
     title: "دەرەوەی نەخۆشخانە",
     /* color: placeholder gradient color until real images are added */
     color: "from-teal-600/80 to-emerald-700/80",
@@ -40,7 +40,7 @@ const galleryImages = [
   },
   {
     src: "/gallery/placeholder-4.jpg",
-    alt: "ئۆپەراسیۆنخانەی نەخۆشخانەی پیرەمام",
+    alt: "ئۆپەراسیۆنخانەی نەخۆشخانەی پیرمام",
     title: "ئۆپەراسیۆنخانە",
     color: "from-teal-700/80 to-cyan-600/80",
   },
@@ -60,7 +60,7 @@ const galleryImages = [
 
 /* Section title and description */
 const sectionTitle = "گەلەری وێنە";
-const sectionDescription = "وێنەیەکانی نەخۆشخانەی پیرەمام - بینینی نزیک لە فەزا و کەرەستەکانی نەخۆشخانە";
+const sectionDescription = "وێنەیەکانی نەخۆشخانەی پیرمام - بینینی نزیک لە فەزا و کەرەستەکانی نەخۆشخانە";
 
 export function GallerySection() {
   /* State for the lightbox modal */

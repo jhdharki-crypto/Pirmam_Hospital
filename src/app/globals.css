@@ -54,85 +54,89 @@
   --color-medical-glow: var(--medical-glow);
 }
 
-/* === LIGHT MODE THEME === */
+/* === LIGHT MODE THEME ===
+   Backgrounds are pure white/very light gray for an open, clean feel.
+   Teal/emerald is used ONLY for accents (buttons, icons, links, gradients). */
 :root {
   --radius: 0.625rem;
-  --background: oklch(0.985 0.002 160);
-  --foreground: oklch(0.15 0.02 160);
-  --card: oklch(0.995 0.002 160);
-  --card-foreground: oklch(0.15 0.02 160);
-  --popover: oklch(0.995 0.002 160);
-  --popover-foreground: oklch(0.15 0.02 160);
-  --primary: oklch(0.45 0.12 170);
-  --primary-foreground: oklch(0.99 0.005 160);
-  --secondary: oklch(0.95 0.02 160);
-  --secondary-foreground: oklch(0.2 0.04 160);
-  --muted: oklch(0.95 0.015 160);
-  --muted-foreground: oklch(0.5 0.02 160);
-  --accent: oklch(0.92 0.04 160);
-  --accent-foreground: oklch(0.2 0.04 160);
+  --background: oklch(0.995 0.001 160);       /* near-pure white */
+  --foreground: oklch(0.15 0.01 260);          /* dark neutral text */
+  --card: oklch(1 0 0);                        /* pure white cards */
+  --card-foreground: oklch(0.15 0.01 260);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.15 0.01 260);
+  --primary: oklch(0.50 0.13 172);             /* teal accent */
+  --primary-foreground: oklch(1 0 0);          /* white text on primary */
+  --secondary: oklch(0.96 0.005 160);          /* very light gray */
+  --secondary-foreground: oklch(0.20 0.01 260);
+  --muted: oklch(0.96 0.005 160);              /* light gray background */
+  --muted-foreground: oklch(0.50 0.01 260);    /* gray text */
+  --accent: oklch(0.94 0.02 172);              /* light teal accent bg */
+  --accent-foreground: oklch(0.20 0.01 260);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.90 0.02 160);
-  --input: oklch(0.90 0.02 160);
-  --ring: oklch(0.45 0.12 170);
-  --chart-1: oklch(0.45 0.12 170);
-  --chart-2: oklch(0.55 0.10 160);
-  --chart-3: oklch(0.65 0.08 170);
-  --chart-4: oklch(0.75 0.06 160);
-  --chart-5: oklch(0.40 0.14 170);
-  --sidebar: oklch(0.98 0.005 160);
-  --sidebar-foreground: oklch(0.15 0.02 160);
-  --sidebar-primary: oklch(0.45 0.12 170);
-  --sidebar-primary-foreground: oklch(0.99 0.005 160);
-  --sidebar-accent: oklch(0.94 0.02 160);
-  --sidebar-accent-foreground: oklch(0.2 0.04 160);
-  --sidebar-border: oklch(0.90 0.02 160);
-  --sidebar-ring: oklch(0.45 0.12 170);
+  --border: oklch(0.92 0.005 160);             /* very subtle border */
+  --input: oklch(0.92 0.005 160);
+  --ring: oklch(0.50 0.13 172);
+  --chart-1: oklch(0.50 0.13 172);
+  --chart-2: oklch(0.60 0.11 160);
+  --chart-3: oklch(0.70 0.08 172);
+  --chart-4: oklch(0.78 0.06 160);
+  --chart-5: oklch(0.45 0.14 172);
+  --sidebar: oklch(0.98 0.002 160);
+  --sidebar-foreground: oklch(0.15 0.01 260);
+  --sidebar-primary: oklch(0.50 0.13 172);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.95 0.005 160);
+  --sidebar-accent-foreground: oklch(0.20 0.01 260);
+  --sidebar-border: oklch(0.92 0.005 160);
+  --sidebar-ring: oklch(0.50 0.13 172);
   /* Medical custom colors for light mode */
-  --medical: oklch(0.55 0.12 170);
-  --medical-light: oklch(0.92 0.04 170);
-  --medical-dark: oklch(0.35 0.14 170);
-  --medical-glow: oklch(0.65 0.15 170);
+  --medical: oklch(0.55 0.12 172);
+  --medical-light: oklch(0.94 0.03 172);
+  --medical-dark: oklch(0.38 0.14 172);
+  --medical-glow: oklch(0.68 0.14 172);
 }
 
-/* === DARK MODE THEME === */
+/* === DARK MODE THEME ===
+   Deep neutral dark with teal accents only.
+   Backgrounds are pure dark, no teal tint on base colors. */
 .dark {
-  --background: oklch(0.12 0.015 170);
-  --foreground: oklch(0.93 0.01 160);
-  --card: oklch(0.17 0.02 170);
-  --card-foreground: oklch(0.93 0.01 160);
-  --popover: oklch(0.17 0.02 170);
-  --popover-foreground: oklch(0.93 0.01 160);
-  --primary: oklch(0.65 0.12 170);
-  --primary-foreground: oklch(0.12 0.015 170);
-  --secondary: oklch(0.22 0.025 170);
-  --secondary-foreground: oklch(0.93 0.01 160);
-  --muted: oklch(0.22 0.02 170);
-  --muted-foreground: oklch(0.65 0.015 160);
-  --accent: oklch(0.25 0.03 170);
-  --accent-foreground: oklch(0.93 0.01 160);
+  --background: oklch(0.13 0.005 260);       /* deep neutral dark */
+  --foreground: oklch(0.94 0.005 260);          /* light neutral text */
+  --card: oklch(0.18 0.005 260);               /* slightly lighter dark cards */
+  --card-foreground: oklch(0.94 0.005 260);
+  --popover: oklch(0.18 0.005 260);
+  --popover-foreground: oklch(0.94 0.005 260);
+  --primary: oklch(0.68 0.12 172);              /* brighter teal for dark mode */
+  --primary-foreground: oklch(0.13 0.005 260);
+  --secondary: oklch(0.22 0.005 260);           /* subtle dark secondary */
+  --secondary-foreground: oklch(0.94 0.005 260);
+  --muted: oklch(0.22 0.005 260);               /* muted dark bg */
+  --muted-foreground: oklch(0.62 0.01 260);     /* dimmed text */
+  --accent: oklch(0.25 0.02 172);               /* dark teal accent */
+  --accent-foreground: oklch(0.94 0.005 260);
   --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(0.28 0.025 170);
-  --input: oklch(0.28 0.025 170);
-  --ring: oklch(0.65 0.12 170);
-  --chart-1: oklch(0.65 0.12 170);
-  --chart-2: oklch(0.55 0.10 160);
-  --chart-3: oklch(0.45 0.14 170);
+  --border: oklch(0.26 0.005 260);              /* subtle dark borders */
+  --input: oklch(0.26 0.005 260);
+  --ring: oklch(0.68 0.12 172);
+  --chart-1: oklch(0.68 0.12 172);
+  --chart-2: oklch(0.58 0.10 160);
+  --chart-3: oklch(0.48 0.14 172);
   --chart-4: oklch(0.75 0.06 160);
-  --chart-5: oklch(0.70 0.10 170);
-  --sidebar: oklch(0.15 0.02 170);
-  --sidebar-foreground: oklch(0.93 0.01 160);
-  --sidebar-primary: oklch(0.65 0.12 170);
-  --sidebar-primary-foreground: oklch(0.12 0.015 170);
-  --sidebar-accent: oklch(0.22 0.025 170);
-  --sidebar-accent-foreground: oklch(0.93 0.01 160);
-  --sidebar-border: oklch(0.28 0.025 170);
-  --sidebar-ring: oklch(0.65 0.12 170);
+  --chart-5: oklch(0.72 0.10 172);
+  --sidebar: oklch(0.16 0.005 260);
+  --sidebar-foreground: oklch(0.94 0.005 260);
+  --sidebar-primary: oklch(0.68 0.12 172);
+  --sidebar-primary-foreground: oklch(0.13 0.005 260);
+  --sidebar-accent: oklch(0.22 0.005 260);
+  --sidebar-accent-foreground: oklch(0.94 0.005 260);
+  --sidebar-border: oklch(0.26 0.005 260);
+  --sidebar-ring: oklch(0.68 0.12 172);
   /* Medical custom colors for dark mode */
-  --medical: oklch(0.65 0.12 170);
-  --medical-light: oklch(0.25 0.03 170);
-  --medical-dark: oklch(0.50 0.14 170);
-  --medical-glow: oklch(0.70 0.15 170);
+  --medical: oklch(0.68 0.12 172);
+  --medical-light: oklch(0.25 0.02 172);
+  --medical-dark: oklch(0.52 0.14 172);
+  --medical-glow: oklch(0.72 0.14 172);
 }
 
 @layer base {

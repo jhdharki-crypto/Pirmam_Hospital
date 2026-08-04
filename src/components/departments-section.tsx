@@ -94,7 +94,7 @@ const departments = [
 
 /* Section title and description */
 const sectionTitle = "بەشەکانی نەخۆشخانە";
-const sectionDescription = "نەخۆشخانەی پیرەمام بەشەکی تایبەت و شارەزای هەیە بۆ چارەسەری هەموو جۆرە نەخۆشیەک";
+const sectionDescription = "نەخۆشخانەی پیرمام بەشەکی تایبەت و شارەزای هەیە بۆ چارەسەری هەموو جۆرە نەخۆشیەک";
 
 /* Animation for each card */
 const cardVariants = {
