@@ -113,3 +113,25 @@ Stage Summary:
 - Each upload button now correctly targets its own item's file input
 - Images auto-save to database and refresh the public site immediately
 - Fix applies to all three sections: departments, gallery, and archive
+
+---
+Task ID: archive-multi-image
+Agent: main
+Task: Add multi-image upload support to Archive section
+
+Work Log:
+- Added ArchiveImage model to Prisma schema with foreign key to ArchiveItem (cascade delete)
+- Created /api/admin/archive-images route (GET by archiveItemId, POST to add, DELETE to remove)
+- Updated /api/content and /api/admin/archive routes to include images via Prisma include
+- Updated content store: added ArchiveImage type, ArchiveItem now has images array
+- Completely rewrote archive-section.tsx with multi-image gallery grid, lightbox with prev/next navigation
+- Rewrote admin panel archive tab: removed single-image upload, added multi-image upload (accepts multiple files), per-image delete button with hover overlay, image count badge
+- Images auto-save to database immediately on upload (no Save click needed)
+- Verified: upload multiple images, display in grid, delete individual images, lightbox navigation
+
+Stage Summary:
+- Archive section now supports unlimited images per item
+- Admin panel has "Upload Images (Multiple)" button per archive item
+- Each image shows a delete (X) button on hover
+- Public site shows image grid when item is expanded, with lightbox viewer
+- Deleting an archive item cascade-deletes all its images

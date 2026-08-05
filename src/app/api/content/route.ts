@@ -14,7 +14,10 @@ export async function GET() {
 
     const departments = await db.department.findMany({ orderBy: { order: "asc" } });
     const galleryItems = await db.galleryItem.findMany({ orderBy: { order: "asc" } });
-    const archiveItems = await db.archiveItem.findMany({ orderBy: { order: "asc" } });
+    const archiveItems = await db.archiveItem.findMany({
+      orderBy: { order: "asc" },
+      include: { images: { orderBy: { order: "asc" } } },
+    });
 
     return NextResponse.json({
       settings: settingsMap,

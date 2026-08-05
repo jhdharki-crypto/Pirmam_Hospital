@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 
-/* GET /api/admin/archive - List all archive items */
+/* GET /api/admin/archive - List all archive items with images */
 export async function GET() {
   try {
-    const items = await db.archiveItem.findMany({ orderBy: { order: "asc" } });
+    const items = await db.archiveItem.findMany({
+      orderBy: { order: "asc" },
+      include: { images: { orderBy: { order: "asc" } } },
+    });
     return NextResponse.json(items);
   } catch (error) {
     console.error("Error fetching archive items:", error);
@@ -22,7 +25,6 @@ export async function POST(request: NextRequest) {
         description: body.description,
         date: body.date,
         category: body.category,
-        image: body.image || null,
         color: body.color || "from-amber-600/70 to-orange-700/70",
         order: body.order ?? 0,
       },
@@ -49,7 +51,7 @@ export async function PUT(request: NextRequest) {
   }
 }
 
-/* DELETE /api/admin/archive - Delete an archive item */
+/* DELETE /api/admin/archive - Delete an archive item (cascade deletes images) */
 export async function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);

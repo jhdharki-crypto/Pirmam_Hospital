@@ -4,7 +4,8 @@ import { db } from "@/lib/db";
 /* POST /api/admin/seed - Seed database with default content */
 export async function POST() {
   try {
-    /* Clear existing data */
+    /* Clear existing data - use raw SQL for archive images since model may not be in client yet */
+    await db.$executeRaw`DELETE FROM ArchiveImage`;
     await db.siteSetting.deleteMany();
     await db.department.deleteMany();
     await db.galleryItem.deleteMany();

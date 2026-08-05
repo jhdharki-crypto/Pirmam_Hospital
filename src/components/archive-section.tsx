@@ -1,6 +1,6 @@
 /* =============================================
    Pirmam Hospital - Archive Section
-   Archive of events, achievements, and news
+   Archive of events, achievements, and news with multiple images
    Content loaded from database via content store
    ============================================= */
 
@@ -12,10 +12,14 @@ import {
   Calendar,
   ChevronDown,
   ChevronUp,
+  ChevronLeft,
+  ChevronRight,
   Award,
   Newspaper,
   GraduationCap,
   Building2,
+  X,
+  ZoomIn,
   type LucideIcon,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -32,6 +36,10 @@ const categoryIconMap: Record<string, LucideIcon> = {
 export function ArchiveSection() {
   const { archiveItems, getSetting } = useContent();
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const [lightbox, setLightbox] = useState<{
+    archiveId: string;
+    imageIndex: number;
+  } | null>(null);
 
   const toggleExpand = (id: string) => {
     setExpandedIds((prev) => {
@@ -47,6 +55,32 @@ export function ArchiveSection() {
 
   const sectionTitle = getSetting("archiveSectionTitle");
   const sectionDescription = getSetting("archiveSectionDesc");
+
+  /* Get the lightbox data */
+  const lightboxItem = lightbox
+    ? archiveItems.find((a) => a.id === lightbox.archiveId)
+    : null;
+  const lightboxImages = lightboxItem?.images || [];
+  const lightboxCurrentUrl =
+    lightboxImages.length > 0 ? lightboxImages[lightbox.imageIndex]?.url : null;
+
+  const lightboxPrev = () => {
+    if (!lightbox) return;
+    const len = lightboxImages.length;
+    setLightbox({
+      ...lightbox,
+      imageIndex: (lightbox.imageIndex - 1 + len) % len,
+    });
+  };
+
+  const lightboxNext = () => {
+    if (!lightbox) return;
+    const len = lightboxImages.length;
+    setLightbox({
+      ...lightbox,
+      imageIndex: (lightbox.imageIndex + 1) % len,
+    });
+  };
 
   return (
     <section id="archive" className="relative py-20 sm:py-28">
@@ -75,6 +109,7 @@ export function ArchiveSection() {
           {archiveItems.map((item, index) => {
             const isExpanded = expandedIds.has(item.id);
             const Icon = categoryIconMap[item.category] || Building2;
+            const hasImages = item.images && item.images.length > 0;
 
             return (
               <motion.article
@@ -86,14 +121,26 @@ export function ArchiveSection() {
                 className="glass rounded-2xl overflow-hidden group"
               >
                 <div className="flex flex-col sm:flex-row">
-                  {/* Image or color placeholder */}
-                  {item.image ? (
-                    <div className="sm:w-48 md:w-56 aspect-video sm:aspect-auto flex-shrink-0 relative overflow-hidden">
+                  {/* Thumbnail: first image or color placeholder */}
+                  {hasImages ? (
+                    <div
+                      className="sm:w-48 md:w-56 aspect-video sm:aspect-auto flex-shrink-0 relative overflow-hidden cursor-pointer"
+                      onClick={() =>
+                        setLightbox({ archiveId: item.id, imageIndex: 0 })
+                      }
+                    >
                       <img
-                        src={item.image}
+                        src={item.images[0].url}
                         alt={item.title}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
+                      {/* Show image count badge if multiple */}
+                      {item.images.length > 1 && (
+                        <div className="absolute bottom-2 left-2 bg-black/60 backdrop-blur-sm text-white text-[10px] px-1.5 py-0.5 rounded-md flex items-center gap-0.5">
+                          <ZoomIn className="w-2.5 h-2.5" />
+                          {item.images.length}
+                        </div>
+                      )}
                       <Badge className="absolute top-3 right-3 bg-white/20 text-white border-0 backdrop-blur-sm text-xs">
                         {item.category}
                       </Badge>
@@ -150,11 +197,131 @@ export function ArchiveSection() {
                     </div>
                   </div>
                 </div>
+
+                {/* === IMAGE GALLERY GRID (shown when expanded and has images) === */}
+                <AnimatePresence>
+                  {isExpanded && hasImages && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="px-4 sm:px-6 pb-4 sm:pb-6">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3">
+                          {item.images.map((img, imgIdx) => (
+                            <motion.div
+                              key={img.id}
+                              initial={{ opacity: 0, scale: 0.9 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              transition={{ delay: imgIdx * 0.05 }}
+                              className="relative aspect-[4/3] rounded-xl overflow-hidden cursor-pointer group/img"
+                              onClick={() =>
+                                setLightbox({
+                                  archiveId: item.id,
+                                  imageIndex: imgIdx,
+                                })
+                              }
+                            >
+                              <img
+                                src={img.url}
+                                alt={`${item.title} - ${imgIdx + 1}`}
+                                className="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-300"
+                              />
+                              <div className="absolute inset-0 bg-black/0 group-hover/img:bg-black/20 transition-colors flex items-center justify-center">
+                                <ZoomIn className="w-5 h-5 text-white opacity-0 group-hover/img:opacity-100 transition-opacity" />
+                              </div>
+                            </motion.div>
+                          ))}
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </motion.article>
             );
           })}
         </div>
       </div>
+
+      {/* === LIGHTBOX MODAL === */}
+      <AnimatePresence>
+        {lightbox && lightboxCurrentUrl && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex items-center justify-center p-4"
+            onClick={() => setLightbox(null)}
+          >
+            <Button
+              variant="ghost"
+              size="icon"
+              className="absolute top-4 left-4 text-white hover:bg-white/10 z-10"
+              onClick={() => setLightbox(null)}
+            >
+              <X className="h-6 w-6" />
+            </Button>
+
+            {/* Counter */}
+            <div className="absolute top-4 right-4 text-white/70 text-sm z-10">
+              {lightbox.imageIndex + 1} / {lightboxImages.length}
+            </div>
+
+            {/* Previous button */}
+            {lightboxImages.length > 1 && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/10 z-10"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  lightboxPrev();
+                }}
+              >
+                <ChevronRight className="h-6 w-6" />
+              </Button>
+            )}
+
+            {/* Next button */}
+            {lightboxImages.length > 1 && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:bg-white/10 z-10"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  lightboxNext();
+                }}
+              >
+                <ChevronLeft className="h-6 w-6" />
+              </Button>
+            )}
+
+            <motion.div
+              key={lightbox.imageIndex}
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="max-w-4xl w-full"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <img
+                src={lightboxCurrentUrl}
+                alt={lightboxItem?.title || ""}
+                className="w-full rounded-2xl object-contain max-h-[75vh]"
+              />
+              {lightboxItem && (
+                <p className="text-white/70 text-sm mt-4 text-center">
+                  {lightboxItem.title}
+                </p>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 }

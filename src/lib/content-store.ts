@@ -55,15 +55,22 @@ export interface GalleryItem {
   order: number;
 }
 
+export interface ArchiveImage {
+  id: string;
+  url: string;
+  order: number;
+  archiveItemId: string;
+}
+
 export interface ArchiveItem {
   id: string;
   title: string;
   description: string;
   date: string;
   category: string;
-  image: string | null;
   color: string;
   order: number;
+  images: ArchiveImage[];
 }
 
 interface ContentState {

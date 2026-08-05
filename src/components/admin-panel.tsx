@@ -14,6 +14,7 @@ import {
   X,
   Save,
   Eye,
+  ImagePlus,
   HeartPulse,
   Brain,
   Bone,
@@ -62,7 +63,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 import { useRefetchContent } from "@/lib/content-store";
-import type { Department, GalleryItem, ArchiveItem } from "@/lib/content-store";
+import type { Department, GalleryItem, ArchiveItem, ArchiveImage } from "@/lib/content-store";
 
 /* ============================
    CONSTANTS
@@ -154,7 +155,8 @@ export function AdminPanel() {
   /* File input ref maps - each item gets its own input so uploads go to the right place */
   const deptFileRefs = useRef<Record<number, HTMLInputElement | null>>({});
   const galFileRefs = useRef<Record<number, HTMLInputElement | null>>({});
-  const arcFileRefs = useRef<Record<number, HTMLInputElement | null>>({});
+  /* Separate ref map for archive multi-image uploads, keyed by archive item index */
+  const arcMultiFileRefs = useRef<Record<number, HTMLInputElement | null>>({});
 
   /* ============================
      PASSWORD & AUTH
@@ -407,16 +409,24 @@ export function AdminPanel() {
               description: item.description,
               date: item.date,
               category: item.category,
-              image: item.image,
               color: item.color,
               order: item.order,
             }),
           });
         } else {
+          /* Send only the archive item fields (not the images array) */
           await fetch("/api/admin/archive", {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(item),
+            body: JSON.stringify({
+              id: item.id,
+              title: item.title,
+              description: item.description,
+              date: item.date,
+              category: item.category,
+              color: item.color,
+              order: item.order,
+            }),
           });
         }
       }
@@ -478,7 +488,7 @@ export function AdminPanel() {
 
   async function handleImageUpload(
     e: React.ChangeEvent<HTMLInputElement>,
-    type: "department" | "gallery" | "archive",
+    type: "department" | "gallery",
     index: number
   ) {
     const file = e.target.files?.[0];
@@ -524,19 +534,6 @@ export function AdminPanel() {
               body: JSON.stringify({ ...item, image: url }),
             });
           }
-        } else {
-          const item = archiveItems[index];
-          setArchiveItems((prev) =>
-            prev.map((a, i) => (i === index ? { ...a, image: url } : a))
-          );
-          /* Auto-save to database */
-          if (item && !item.id.startsWith("new-")) {
-            await fetch("/api/admin/archive", {
-              method: "PUT",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ ...item, image: url }),
-            });
-          }
         }
 
         /* Refresh public-facing site content */
@@ -553,15 +550,13 @@ export function AdminPanel() {
     e.target.value = "";
   }
 
-  function triggerUpload(type: "department" | "gallery" | "archive", index: number) {
+  function triggerUpload(type: "department" | "gallery", index: number) {
     /* Use a short timeout to ensure the file input is mounted before clicking */
     setTimeout(() => {
       const refMap =
         type === "department"
           ? deptFileRefs
-          : type === "gallery"
-            ? galFileRefs
-            : arcFileRefs;
+          : galFileRefs;
       refMap.current[index]?.click();
     }, 50);
   }
@@ -569,22 +564,20 @@ export function AdminPanel() {
   /* Hidden file input - each item gets its own unique input element
      so that clicking upload on item #1 always uploads to item #1 */
   function getRefCallback(
-    type: "department" | "gallery" | "archive",
+    type: "department" | "gallery",
     index: number
   ) {
     const refMap =
       type === "department"
         ? deptFileRefs
-        : type === "gallery"
-          ? galFileRefs
-          : arcFileRefs;
+        : galFileRefs;
     return (el: HTMLInputElement | null) => {
       refMap.current[index] = el;
     };
   }
 
   const hiddenFileInput = (
-    type: "department" | "gallery" | "archive",
+    type: "department" | "gallery",
     index: number
   ) => {
     return (
@@ -1244,6 +1237,105 @@ export function AdminPanel() {
      ARCHIVE TAB
      ============================ */
 
+  /* Handle multi-image upload for an archive item */
+  async function handleArchiveImageUpload(
+    e: React.ChangeEvent<HTMLInputElement>,
+    archiveIdx: number
+  ) {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const item = archiveItems[archiveIdx];
+    if (!item) return;
+
+    try {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("folder", "archive");
+
+        const res = await fetch("/api/admin/upload", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          const url = data.url;
+
+          /* Save image to database via archive-images API */
+          if (!item.id.startsWith("new-")) {
+            await fetch("/api/admin/archive-images", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                archiveItemId: item.id,
+                url,
+                order: (item.images?.length || 0) + i,
+              }),
+            });
+          }
+
+          /* Update local state */
+          const newImage: ArchiveImage = {
+            id: `temp-${Date.now()}-${i}`,
+            url,
+            order: (item.images?.length || 0) + i,
+            archiveItemId: item.id,
+          };
+          setArchiveItems((prev) =>
+            prev.map((a, idx) =>
+              idx === archiveIdx
+                ? { ...a, images: [...(a.images || []), newImage] }
+                : a
+            )
+          );
+        }
+      }
+
+      await refetch();
+      toast.success(
+        files.length === 1
+          ? "وێنەکە بارکرا و تۆمارکرا"
+          : `${files.length} وێنە بارکران و تۆمارکران`
+      );
+    } catch {
+      toast.error("هەڵەیەک ڕوویدا لە بارکردنی وێنە");
+    }
+
+    e.target.value = "";
+  }
+
+  /* Delete a single image from an archive item */
+  async function deleteArchiveImage(archiveIdx: number, imageId: string) {
+    const item = archiveItems[archiveIdx];
+    if (!item) return;
+
+    try {
+      /* Remove from database */
+      if (!imageId.startsWith("temp-")) {
+        await fetch(`/api/admin/archive-images?id=${imageId}`, {
+          method: "DELETE",
+        });
+      }
+
+      /* Update local state */
+      setArchiveItems((prev) =>
+        prev.map((a, idx) =>
+          idx === archiveIdx
+            ? { ...a, images: (a.images || []).filter((img) => img.id !== imageId) }
+            : a
+        )
+      );
+
+      await refetch();
+      toast.success("وێنەکە سڕایەوە");
+    } catch {
+      toast.error("هەڵەیەک ڕوویدا لە سڕینەوە");
+    }
+  }
+
   function renderArchiveTab() {
     if (loading) {
       return <LoadingSpinner />;
@@ -1269,14 +1361,10 @@ export function AdminPanel() {
                       <Badge variant="outline" className="text-xs">
                         #{idx + 1}
                       </Badge>
-                      {item.image && (
-                        <div className="w-8 h-8 rounded-lg overflow-hidden">
-                          <img
-                            src={item.image}
-                            alt={item.title}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
+                      {(item.images?.length || 0) > 0 && (
+                        <Badge variant="secondary" className="text-[10px] bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300">
+                          {item.images.length} وێنە
+                        </Badge>
                       )}
                     </div>
                     <AlertDialog>
@@ -1289,7 +1377,7 @@ export function AdminPanel() {
                         <AlertDialogHeader>
                           <AlertDialogTitle>دڵنیای لە سڕینەوە؟</AlertDialogTitle>
                           <AlertDialogDescription>
-                            دەتەوێت &quot;{item.title}&quot; بسڕیتەوە؟ ئەم کردارە ناگەڕێتەوە.
+                            دەتەوێت &quot;{item.title}&quot; و هەموو وێنەکانی بسڕیتەوە؟ ئەم کردارە ناگەڕێتەوە.
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
@@ -1407,34 +1495,69 @@ export function AdminPanel() {
                     />
                   </div>
 
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => triggerUpload("archive", idx)}
-                      className="text-xs flex-1"
-                    >
-                      <Upload className="w-3.5 h-3.5 ml-1" />
-                      بارکردنی وێنە
-                    </Button>
-                    {item.image && (
+                  {/* === MULTI-IMAGE SECTION === */}
+                  <div className="space-y-2">
+                    <Label className="text-xs text-gray-500 flex items-center gap-1">
+                      <ImageIcon className="w-3 h-3" />
+                      وێنەکان
+                    </Label>
+
+                    {/* Existing images grid */}
+                    {(item.images || []).length > 0 && (
+                      <div className="grid grid-cols-3 gap-2">
+                        {item.images.map((img, imgIdx) => (
+                          <div
+                            key={img.id}
+                            className="relative aspect-[4/3] rounded-lg overflow-hidden group/img border border-gray-200 dark:border-gray-700"
+                          >
+                            <img
+                              src={img.url}
+                              alt={`وێنە ${imgIdx + 1}`}
+                              className="w-full h-full object-cover"
+                            />
+                            {/* Delete button overlay */}
+                            <button
+                              type="button"
+                              onClick={() => deleteArchiveImage(idx, img.id)}
+                              className="absolute top-1 left-1 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity hover:bg-red-600"
+                              title="سڕینەوە"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                            {/* Image number badge */}
+                            <div className="absolute bottom-1 right-1 bg-black/50 text-white text-[9px] px-1 rounded">
+                              {imgIdx + 1}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Upload buttons */}
+                    <div className="flex gap-2">
+                      {/* Multi-image upload (accepts multiple files) */}
+                      <input
+                        key={`arc-multi-${idx}`}
+                        ref={(el) => { arcMultiFileRefs.current[idx] = el; }}
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        className="hidden"
+                        onChange={(e) => handleArchiveImageUpload(e, idx)}
+                      />
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() =>
-                          setArchiveItems((prev) =>
-                            prev.map((a, i) =>
-                              i === idx ? { ...a, image: null } : a
-                            )
-                          )
-                        }
-                        className="text-xs text-red-500"
+                        onClick={() => {
+                          arcMultiFileRefs.current[idx]?.click();
+                        }}
+                        className="text-xs flex-1"
                       >
-                        <X className="w-3.5 h-3.5" />
+                        <ImagePlus className="w-3.5 h-3.5 ml-1" />
+                        بارکردنی وێنە (چەندین)
                       </Button>
-                    )}
+                    </div>
                   </div>
-                  {hiddenFileInput("archive", idx)}
                 </CardContent>
               </Card>
             </motion.div>
@@ -1451,9 +1574,9 @@ export function AdminPanel() {
                   description: "",
                   date: "",
                   category: "",
-                  image: null,
                   color: "from-amber-600/70 to-orange-700/70",
                   order: prev.length,
+                  images: [],
                 },
               ])
             }

@@ -36,14 +36,23 @@ model GalleryItem {
 }
 
 model ArchiveItem {
-  id          String   @id @default(cuid())
+  id          String        @id @default(cuid())
   title       String
   description String
   date        String
   category    String
-  image       String?
-  color       String   @default("from-amber-600/70 to-orange-700/70")
-  order       Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  color       String        @default("from-amber-600/70 to-orange-700/70")
+  order       Int           @default(0)
+  images      ArchiveImage[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model ArchiveImage {
+  id          String      @id @default(cuid())
+  url         String
+  order       Int         @default(0)
+  archiveItem ArchiveItem @relation(fields: [archiveItemId], references: [id], onDelete: Cascade)
+  archiveItemId String
+  createdAt   DateTime    @default(now())
 }
