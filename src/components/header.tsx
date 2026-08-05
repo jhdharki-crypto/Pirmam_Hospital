@@ -1,6 +1,7 @@
 /* =============================================
    Pirmam Hospital - Header / Navigation Bar
-   Includes: Logo placeholder, Navigation links, Dark/Light toggle
+   Includes: Logo, Navigation links (from settings), Dark/Light toggle
+   All labels are editable via the Admin Panel
    ============================================= */
 
 "use client";
@@ -16,21 +17,19 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import { useContent } from "@/lib/content-store";
 
-/* =============================================
-   NAVIGATION LINKS CONFIGURATION
-   EDIT: Change the labels or add/remove links below
-   href should match the section id in the page
-   ============================================= */
-const navLinks = [
-  { href: "#home", label: "سەرەتا" },       // Home
-  { href: "#departments", label: "بەشەکان" },   // Departments
-  { href: "#gallery", label: "گەلەری" },     // Gallery
-  { href: "#archive", label: "ئەرشیف و هەواڵی نەخۆشخانە" },      // Archive & Hospital News
+/* Navigation link structure - labels come from database settings */
+const navLinksConfig = [
+  { href: "#home", settingKey: "navLabelHome", defaultLabel: "سەرەتا" },
+  { href: "#departments", settingKey: "navLabelDepartments", defaultLabel: "بەشەکان" },
+  { href: "#gallery", settingKey: "navLabelGallery", defaultLabel: "گەلەری" },
+  { href: "#archive", settingKey: "navLabelArchive", defaultLabel: "ئەرشیف و هەواڵی نەخۆشخانە" },
 ];
 
 export function Header() {
   const { theme, setTheme } = useTheme();
+  const { settings, loaded } = useContent();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -40,6 +39,16 @@ export function Header() {
     () => true,
     () => false,
   );
+
+  /* Build nav links from settings - fallback to defaults */
+  const navLinks = navLinksConfig.map((link) => ({
+    href: link.href,
+    label: settings[link.settingKey] || link.defaultLabel,
+  }));
+
+  /* Hospital name from settings */
+  const hospitalNameKu = settings.hospitalNameKu || "نەخۆشخانەی پیرمام";
+  const hospitalNameEn = settings.hospitalNameEn || "Pirmam Hospital";
 
   /* Track scroll position to add background blur on header */
   useEffect(() => {
@@ -72,13 +81,13 @@ export function Header() {
               className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl object-contain shadow-lg group-hover:shadow-primary/30 transition-shadow"
               priority
             />
-            {/* Hospital name next to logo */}
+            {/* Hospital name next to logo - comes from settings */}
             <div className="flex flex-col">
               <span className="text-base sm:text-lg font-bold bg-gradient-to-l from-primary to-medical-dark bg-clip-text text-transparent leading-tight">
-                نەخۆشخانەی پیرمام
+                {hospitalNameKu}
               </span>
               <span className="text-[10px] sm:text-xs text-muted-foreground leading-tight">
-                Pirmam Hospital
+                {hospitalNameEn}
               </span>
             </div>
           </a>

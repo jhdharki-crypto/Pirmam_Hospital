@@ -702,6 +702,52 @@ export function AdminPanel() {
 
           <Separator />
 
+          {/* Hospital name (shown next to logo in header) */}
+          <h3 className="font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+            <Settings className="w-4 h-4 text-teal-600" />
+            ناوی نەخۆشخانە (لەسەر هێدەر)
+          </h3>
+          <SettingsField
+            label="ناوی کوردی"
+            value={settings.hospitalNameKu || ""}
+            onChange={(v) => updateSetting("hospitalNameKu", v)}
+          />
+          <SettingsField
+            label="ناوی ئینگلیزی"
+            value={settings.hospitalNameEn || ""}
+            onChange={(v) => updateSetting("hospitalNameEn", v)}
+          />
+
+          <Separator />
+
+          {/* Navigation link labels */}
+          <h3 className="font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+            <PenSquare className="w-4 h-4 text-teal-600" />
+            لینکەکانی هێدەر
+          </h3>
+          <SettingsField
+            label="سەرەتا"
+            value={settings.navLabelHome || ""}
+            onChange={(v) => updateSetting("navLabelHome", v)}
+          />
+          <SettingsField
+            label="بەشەکان"
+            value={settings.navLabelDepartments || ""}
+            onChange={(v) => updateSetting("navLabelDepartments", v)}
+          />
+          <SettingsField
+            label="گەلەری"
+            value={settings.navLabelGallery || ""}
+            onChange={(v) => updateSetting("navLabelGallery", v)}
+          />
+          <SettingsField
+            label="ئەرشیف و هەواڵ"
+            value={settings.navLabelArchive || ""}
+            onChange={(v) => updateSetting("navLabelArchive", v)}
+          />
+
+          <Separator />
+
           <h3 className="font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
             <Activity className="w-4 h-4 text-teal-600" />
             ئامارەکان

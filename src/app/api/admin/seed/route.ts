@@ -46,6 +46,10 @@ const DEFAULT_SETTINGS: Record<string, string> = {
   gallerySectionDesc: "وێنەیەکانی نەخۆشخانەی پیرمام - بینینی نزیک لە فەزا و کەرەستەکانی نەخۆشخانە",
   archiveSectionTitle: "ئەرشیف و هەواڵی نەخۆشخانە",
   archiveSectionDesc: "بەرنامە، تۆمارەکان، هەواڵ و بۆنیانەکانی نەخۆشخانەی پیرمام",
+  navLabelHome: "سەرەتا",
+  navLabelDepartments: "بەشەکان",
+  navLabelGallery: "گەلەری",
+  navLabelArchive: "ئەرشیف و هەواڵی نەخۆشخانە",
   adminPassword: "pirmam2025",
 };
 
