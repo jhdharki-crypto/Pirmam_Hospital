@@ -154,3 +154,22 @@ Stage Summary:
 - Page renders correctly with the new name
 - Multi-image support for archive items (from previous session) remains intact
 ---
+---
+Task ID: 3
+Agent: main
+Task: Fix seed route to preserve user data (uploads, edits, etc.)
+
+Work Log:
+- Identified root cause: seed endpoint was deleting ALL data and recreating defaults on every call
+- Rewrote seed/route.ts with two modes:
+  - SAFE MODE (default): uses upsert for settings, only fills departments/gallery/archive if tables are empty. NEVER deletes user data.
+  - RESET MODE (?reset=true): full wipe and recreate, only used when explicitly requested
+- Ran safe seed to ensure database is populated
+- Verified all 31 settings, 12 departments, 6 gallery items, 4 archive items intact
+- Verified in browser that everything renders correctly
+
+Stage Summary:
+- Seed route is now safe by default - user data (uploads, text edits, pictures) will NEVER be lost
+- From now on, code changes will NOT touch the database
+- Full reset only possible with explicit ?reset=true parameter
+---
