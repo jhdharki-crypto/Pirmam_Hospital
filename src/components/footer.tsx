@@ -6,11 +6,10 @@
 "use client";
 
 import {
-  Heart,
   Phone,
   MapPin,
   Mail,
- Clock,
+  Clock,
 } from "lucide-react";
 import {
   Facebook,
@@ -18,6 +17,7 @@ import {
   Twitter,
   Youtube,
 } from "lucide-react";
+import Image from "next/image";
 
 /* =============================================
    FOOTER CONTACT INFORMATION CONFIGURATION
@@ -87,10 +87,14 @@ export function Footer() {
           {/* === COLUMN 1: Hospital Identity === */}
           <div className="sm:col-span-2 lg:col-span-1">
             <div className="flex items-center gap-2 mb-4">
-              {/* Logo placeholder - same as header */}
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-medical-dark flex items-center justify-center">
-                <Heart className="w-5 h-5 text-primary-foreground" />
-              </div>
+              {/* EDIT: Change the logo image by replacing public/logo.png */}
+              <Image
+                src="/logo.png"
+                alt="نەخۆشخانەی پیرمام Logo"
+                width={40}
+                height={40}
+                className="w-10 h-10 rounded-xl object-contain"
+              />
               <div>
                 <div className="font-bold text-foreground">{hospitalNameKu}</div>
                 <div className="text-xs text-muted-foreground">{hospitalNameEn}</div>

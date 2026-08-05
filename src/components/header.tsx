@@ -13,8 +13,8 @@ import {
   Moon,
   Menu,
   X,
-  Heart,
 } from "lucide-react";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 
 /* =============================================
@@ -59,14 +59,19 @@ export function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-20">
 
-          {/* === LOGO PLACEHOLDER === 
-              EDIT: Replace this div with your actual <Image /> or <img /> tag
-              Example: <Image src="/your-logo.png" alt="Pirmam Hospital" width={140} height={40} /> */}
+          {/* === HOSPITAL LOGO ===
+              The logo image is at: public/logo.png
+              To change the logo, replace the file at: public/logo.png */}
           <a href="#home" className="flex items-center gap-2 group">
-            {/* Logo icon - replace with actual logo image */}
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br from-primary to-medical-dark flex items-center justify-center shadow-lg shadow-primary/20 group-hover:shadow-primary/40 transition-shadow">
-              <Heart className="w-5 h-5 sm:w-6 sm:h-6 text-primary-foreground animate-heartbeat" />
-            </div>
+            {/* EDIT: Change the logo image by replacing public/logo.png */}
+            <Image
+              src="/logo.png"
+              alt="نەخۆشخانەی پیرمام - Pirmam Hospital Logo"
+              width={44}
+              height={44}
+              className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl object-contain shadow-lg group-hover:shadow-primary/30 transition-shadow"
+              priority
+            />
             {/* Hospital name next to logo */}
             <div className="flex flex-col">
               <span className="text-base sm:text-lg font-bold bg-gradient-to-l from-primary to-medical-dark bg-clip-text text-transparent leading-tight">
