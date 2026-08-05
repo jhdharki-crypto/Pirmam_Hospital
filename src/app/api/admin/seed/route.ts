@@ -41,8 +41,8 @@ export async function POST() {
       { key: "deptSectionDesc", value: "نەخۆشخانەی پیرمام بەشەکی تایبەت و شارەزای هەیە بۆ چارەسەری هەموو جۆرە نەخۆشیەک" },
       { key: "gallerySectionTitle", value: "گەلەری وێنە" },
       { key: "gallerySectionDesc", value: "وێنەیەکانی نەخۆشخانەی پیرمام - بینینی نزیک لە فەزا و کەرەستەکانی نەخۆشخانە" },
-      { key: "archiveSectionTitle", value: "ئەرشیف" },
-      { key: "archiveSectionDesc", value: "بەرنامە، تۆمارەکان و بۆنیانەکانی نەخۆشخانەی پیرمام" },
+      { key: "archiveSectionTitle", value: "ئەرشیف و هەواڵی نەخۆشخانە" },
+      { key: "archiveSectionDesc", value: "بەرنامە، تۆمارەکان، هەواڵ و بۆنیانەکانی نەخۆشخانەی پیرمام" },
       { key: "adminPassword", value: "pirmam2025" },
     ];
 

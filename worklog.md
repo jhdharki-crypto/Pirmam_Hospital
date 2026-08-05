@@ -135,3 +135,22 @@ Stage Summary:
 - Each image shows a delete (X) button on hover
 - Public site shows image grid when item is expanded, with lightbox viewer
 - Deleting an archive item cascade-deletes all its images
+---
+Task ID: 2
+Agent: main
+Task: Rename Archive section to Archive & Hospital News across all files
+
+Work Log:
+- Updated header.tsx: nav link from "ئەرشیف" to "ئەرشیف و هەواڵی نەخۆشخانە"
+- Updated content-store.ts: default archiveSectionTitle and archiveSectionDesc
+- Updated seed/route.ts: archiveSectionTitle and archiveSectionDesc seed values
+- Updated admin-panel.tsx: tab label, section heading, label fields, and toast messages
+- Re-seeded database with updated titles
+- Verified in browser via agent-browser
+
+Stage Summary:
+- Archive section renamed to "ئەرشیف و هەواڵی نەخۆشخانە" (Archive & Hospital News) everywhere
+- Navigation, section heading, admin panel, default values, and seed data all updated
+- Page renders correctly with the new name
+- Multi-image support for archive items (from previous session) remains intact
+---

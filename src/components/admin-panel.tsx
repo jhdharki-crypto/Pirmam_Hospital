@@ -231,7 +231,7 @@ export function AdminPanel() {
         setArchiveItems(data);
       }
     } catch {
-      toast.error("هەڵەیەک ڕوویدا لە بارکردنی ئەرشیف");
+      toast.error("هەڵەیەک ڕوویدا لە بارکردنی ئەرشیف و هەواڵ");
     }
     setLoading(false);
   }, []);
@@ -430,7 +430,7 @@ export function AdminPanel() {
           });
         }
       }
-      toast.success("ئەرشیف بە سەرکەوتوویی تۆمارکرا");
+      toast.success("ئەرشیف و هەواڵ بە سەرکەوتوویی تۆمارکرا");
       await refetch();
       await fetchArchive();
     } catch {
@@ -775,15 +775,15 @@ export function AdminPanel() {
           <Separator />
           <h3 className="font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
             <PenSquare className="w-4 h-4 text-teal-600" />
-            ناوی ئەرشیف
+            ناوی ئەرشیف و هەواڵی نەخۆشخانە
           </h3>
           <SettingsField
-            label="ناوی بەشی ئەرشیف"
+            label="ناوی بەشی ئەرشیف و هەواڵ"
             value={settings.archiveSectionTitle || ""}
             onChange={(v) => updateSetting("archiveSectionTitle", v)}
           />
           <SettingsField
-            label="پێناسەی ئەرشیف"
+            label="پێناسەی ئەرشیف و هەواڵ"
             value={settings.archiveSectionDesc || ""}
             onChange={(v) => updateSetting("archiveSectionDesc", v)}
             multiline
@@ -1828,7 +1828,7 @@ export function AdminPanel() {
                       className="flex-1 min-w-0 text-xs py-2 rounded-lg data-[state=active]:bg-teal-600 data-[state=active]:text-white data-[state=active]:shadow-md"
                     >
                       <Archive className="w-3.5 h-3.5 ml-1 hidden sm:block" />
-                      <span className="truncate">ئەرشیف</span>
+                      <span className="truncate">ئەرشیف و هەواڵ</span>
                     </TabsTrigger>
                     <TabsTrigger
                       value="contact"

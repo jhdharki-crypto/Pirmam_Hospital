@@ -26,7 +26,7 @@ const navLinks = [
   { href: "#home", label: "سەرەتا" },       // Home
   { href: "#departments", label: "بەشەکان" },   // Departments
   { href: "#gallery", label: "گەلەری" },     // Gallery
-  { href: "#archive", label: "ئەرشیف" },      // Archive
+  { href: "#archive", label: "ئەرشیف و هەواڵی نەخۆشخانە" },      // Archive & Hospital News
 ];
 
 export function Header() {

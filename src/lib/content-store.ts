@@ -33,8 +33,8 @@ const defaultSettings: Record<string, string> = {
   deptSectionDesc: "نەخۆشخانەی پیرمام بەشەکی تایبەت و شارەزای هەیە بۆ چارەسەری هەموو جۆرە نەخۆشیەک",
   gallerySectionTitle: "گەلەری وێنە",
   gallerySectionDesc: "وێنەیەکانی نەخۆشخانەی پیرمام - بینینی نزیک لە فەزا و کەرەستەکانی نەخۆشخانە",
-  archiveSectionTitle: "ئەرشیف",
-  archiveSectionDesc: "بەرنامە، تۆمارەکان و بۆنیانەکانی نەخۆشخانەی پیرمام",
+  archiveSectionTitle: "ئەرشیف و هەواڵی نەخۆشخانە",
+  archiveSectionDesc: "بەرنامە، تۆمارەکان، هەواڵ و بۆنیانەکانی نەخۆشخانەی پیرمام",
 };
 
 export interface Department {
