@@ -1,0 +1,1758 @@
+     1→"use client";
+     2→
+     3→import React, { useState, useRef, useCallback } from "react";
+     4→import { motion, AnimatePresence } from "framer-motion";
+     5→import { toast } from "sonner";
+     6→import {
+     7→  Settings,
+     8→  ImageIcon,
+     9→  Archive,
+    10→  Phone,
+    11→  Plus,
+    12→  Trash2,
+    13→  Upload,
+    14→  X,
+    15→  Save,
+    16→  Eye,
+    17→  HeartPulse,
+    18→  Brain,
+    19→  Bone,
+    20→  Baby,
+    21→  Eye as EyeIcon,
+    22→  Stethoscope,
+    23→  Pill,
+    24→  Microscope,
+    25→  Syringe,
+    26→  ScanLine,
+    27→  Activity,
+    28→  Ear,
+    29→  ChevronLeft,
+    30→  Loader2,
+    31→  ShieldCheck,
+    32→  PenSquare,
+    33→} from "lucide-react";
+    34→
+    35→import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+    36→import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+    37→import { Button } from "@/components/ui/button";
+    38→import { Input } from "@/components/ui/input";
+    39→import { Textarea } from "@/components/ui/textarea";
+    40→import { Label } from "@/components/ui/label";
+    41→import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+    42→import { Badge } from "@/components/ui/badge";
+    43→import { ScrollArea } from "@/components/ui/scroll-area";
+    44→import { Separator } from "@/components/ui/separator";
+    45→import {
+    46→  Select,
+    47→  SelectContent,
+    48→  SelectItem,
+    49→  SelectTrigger,
+    50→  SelectValue,
+    51→} from "@/components/ui/select";
+    52→import {
+    53→  AlertDialog,
+    54→  AlertDialogAction,
+    55→  AlertDialogCancel,
+    56→  AlertDialogContent,
+    57→  AlertDialogDescription,
+    58→  AlertDialogFooter,
+    59→  AlertDialogHeader,
+    60→  AlertDialogTitle,
+    61→  AlertDialogTrigger,
+    62→} from "@/components/ui/alert-dialog";
+    63→
+    64→import { useRefetchContent } from "@/lib/content-store";
+    65→import type { Department, GalleryItem, ArchiveItem } from "@/lib/content-store";
+    66→
+    67→/* ============================
+    68→   CONSTANTS
+    69→   ============================ */
+    70→
+    71→const DEPARTMENT_ICONS = [
+    72→  "HeartPulse",
+    73→  "Brain",
+    74→  "Bone",
+    75→  "Baby",
+    76→  "Eye",
+    77→  "Stethoscope",
+    78→  "Pill",
+    79→  "Microscope",
+    80→  "Syringe",
+    81→  "ScanLine",
+    82→  "Activity",
+    83→  "Ear",
+    84→] as const;
+    85→
+    86→const ICON_MAP: Record<string, React.ElementType> = {
+    87→  HeartPulse,
+    88→  Brain,
+    89→  Bone,
+    90→  Baby,
+    91→  Eye: EyeIcon,
+    92→  Stethoscope,
+    93→  Pill,
+    94→  Microscope,
+    95→  Syringe,
+    96→  ScanLine,
+    97→  Activity,
+    98→  Ear,
+    99→};
+   100→
+   101→const ICON_LABELS: Record<string, string> = {
+   102→  HeartPulse: "دڵ",
+   103→  Brain: "مێشک",
+   104→  Bone: "ئێسک",
+   105→  Baby: "منداڵ",
+   106→  Eye: "چاو",
+   107→  Stethoscope: "ستێتۆسکۆپ",
+   108→  Pill: "دەرمان",
+   109→  Microscope: "میکرۆسکۆپ",
+   110→  Syringe: "دەزو",
+   111→  ScanLine: "سکان",
+   112→  Activity: "چالاک",
+   113→  Ear: "گوێ",
+   114→};
+   115→
+   116→const PRESET_COLORS = [
+   117→  { label: "زەرد", value: "from-amber-600/70 to-orange-700/70" },
+   118→  { label: "سەوز", value: "from-teal-600/80 to-emerald-700/80" },
+   119→  { label: "شین", value: "from-sky-600/70 to-blue-700/80" },
+   120→  { label: "سور", value: "from-rose-600/70 to-red-700/80" },
+   121→  { label: "مۆر", value: "from-purple-600/70 to-violet-700/80" },
+   122→  { label: "پەمۆ", value: "from-pink-600/70 to-fuchsia-700/80" },
+   123→  { label: "خۆڵی", value: "from-yellow-600/70 to-amber-700/80" },
+   124→  { label: "سەوزی تۆخ", value: "from-green-600/70 to-lime-700/80" },
+   125→];
+   126→
+   127→/* ============================
+   128→   MAIN COMPONENT
+   129→   ============================ */
+   130→
+   131→export function AdminPanel() {
+   132→  const { refetch } = useRefetchContent();
+   133→
+   134→  /* Panel state */
+   135→  const [open, setOpen] = useState(false);
+   136→  const [authenticated, setAuthenticated] = useState(false);
+   137→  const [passwordInput, setPasswordInput] = useState("");
+   138→  const [passwordLoading, setPasswordLoading] = useState(false);
+   139→  const [adminPassword, setAdminPassword] = useState("pirmam2025");
+   140→
+   141→  /* Tab state */
+   142→  const [activeTab, setActiveTab] = useState("hero");
+   143→
+   144→  /* Data state */
+   145→  const [settings, setSettings] = useState<Record<string, string>>({});
+   146→  const [departments, setDepartments] = useState<Department[]>([]);
+   147→  const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
+   148→  const [archiveItems, setArchiveItems] = useState<ArchiveItem[]>([]);
+   149→
+   150→  /* Loading state */
+   151→  const [loading, setLoading] = useState(false);
+   152→  const [saving, setSaving] = useState(false);
+   153→
+   154→  /* File input refs */
+   155→  const deptFileRef = useRef<HTMLInputElement>(null);
+   156→  const galFileRef = useRef<HTMLInputElement>(null);
+   157→  const arcFileRef = useRef<HTMLInputElement>(null);
+   158→  const [uploadTarget, setUploadTarget] = useState<{
+   159→    type: "department" | "gallery" | "archive";
+   160→    index: number;
+   161→  } | null>(null);
+   162→
+   163→  /* ============================
+   164→     PASSWORD & AUTH
+   165→     ============================ */
+   166→
+   167→  const fetchAdminPassword = useCallback(async () => {
+   168→    try {
+   169→      const res = await fetch("/api/admin/content");
+   170→      if (res.ok) {
+   171→        const data = await res.json();
+   172→        if (data.adminPassword) {
+   173→          setAdminPassword(data.adminPassword);
+   174→        }
+   175→      }
+   176→    } catch {
+   177→      /* Use default password */
+   178→    }
+   179→  }, []);
+   180→
+   181→  /* ============================
+   182→     DATA FETCHING
+   183→     ============================ */
+   184→
+   185→  const fetchSettings = useCallback(async () => {
+   186→    setLoading(true);
+   187→    try {
+   188→      const res = await fetch("/api/admin/content");
+   189→      if (res.ok) {
+   190→        const data = await res.json();
+   191→        setSettings(data);
+   192→      }
+   193→    } catch {
+   194→      toast.error("هەڵەیەک ڕوویدا لە بارکردنی داتا");
+   195→    }
+   196→    setLoading(false);
+   197→  }, []);
+   198→
+   199→  const fetchDepartments = useCallback(async () => {
+   200→    setLoading(true);
+   201→    try {
+   202→      const res = await fetch("/api/admin/departments");
+   203→      if (res.ok) {
+   204→        const data = await res.json();
+   205→        setDepartments(data);
+   206→      }
+   207→    } catch {
+   208→      toast.error("هەڵەیەک ڕوویدا لە بارکردنی بەشەکان");
+   209→    }
+   210→    setLoading(false);
+   211→  }, []);
+   212→
+   213→  const fetchGallery = useCallback(async () => {
+   214→    setLoading(true);
+   215→    try {
+   216→      const res = await fetch("/api/admin/gallery");
+   217→      if (res.ok) {
+   218→        const data = await res.json();
+   219→        setGalleryItems(data);
+   220→      }
+   221→    } catch {
+   222→      toast.error("هەڵەیەک ڕوویدا لە بارکردنی گەلەری");
+   223→    }
+   224→    setLoading(false);
+   225→  }, []);
+   226→
+   227→  const fetchArchive = useCallback(async () => {
+   228→    setLoading(true);
+   229→    try {
+   230→      const res = await fetch("/api/admin/archive");
+   231→      if (res.ok) {
+   232→        const data = await res.json();
+   233→        setArchiveItems(data);
+   234→      }
+   235→    } catch {
+   236→      toast.error("هەڵەیەک ڕوویدا لە بارکردنی ئەرشیف");
+   237→    }
+   238→    setLoading(false);
+   239→  }, []);
+   240→
+   241→  /* Fetch data for a given tab */
+   242→  const fetchTabData = useCallback(
+   243→    (tab: string) => {
+   244→      switch (tab) {
+   245→        case "hero":
+   246→        case "contact":
+   247→          fetchSettings();
+   248→          break;
+   249→        case "departments":
+   250→          fetchDepartments();
+   251→          break;
+   252→        case "gallery":
+   253→          fetchGallery();
+   254→          break;
+   255→        case "archive":
+   256→          fetchArchive();
+   257→          break;
+   258→      }
+   259→    },
+   260→    [fetchSettings, fetchDepartments, fetchGallery, fetchArchive]
+   261→  );
+   262→
+   263→  /* Handle sheet open - fetch password if not authenticated */
+   264→  async function handleOpenChange(isOpen: boolean) {
+   265→    setOpen(isOpen);
+   266→    if (isOpen && !authenticated) {
+   267→      await fetchAdminPassword();
+   268→    }
+   269→    if (isOpen && authenticated) {
+   270→      fetchTabData(activeTab);
+   271→    }
+   272→  }
+   273→
+   274→  /* Handle tab change - fetch data for the new tab */
+   275→  function handleTabChange(tab: string) {
+   276→    setActiveTab(tab);
+   277→    fetchTabData(tab);
+   278→  }
+   279→
+   280→  async function handlePasswordSubmit(e: React.FormEvent) {
+   281→    e.preventDefault();
+   282→    setPasswordLoading(true);
+   283→    try {
+   284→      await fetchAdminPassword();
+   285→      /* Small delay to ensure password is loaded */
+   286→      setTimeout(() => {
+   287→        if (passwordInput === adminPassword) {
+   288→          setAuthenticated(true);
+   289→          setPasswordInput("");
+   290→          toast.success("بە سەرکەوتوویی چوویتەژوورەوە");
+   291→          fetchTabData(activeTab);
+   292→        } else {
+   293→          toast.error("وشەی نهێنی هەڵەیە");
+   294→        }
+   295→        setPasswordLoading(false);
+   296→      }, 200);
+   297→    } catch {
+   298→      if (passwordInput === adminPassword) {
+   299→        setAuthenticated(true);
+   300→        setPasswordInput("");
+   301→        toast.success("بە سەرکەوتوویی چوویتەژوورەوە");
+   302→        fetchTabData(activeTab);
+   303→      } else {
+   304→        toast.error("وشەی نهێنی هەڵەیە");
+   305→      }
+   306→      setPasswordLoading(false);
+   307→    }
+   308→  }
+   309→
+   310→  /* ============================
+   311→     SAVE HANDLERS
+   312→     ============================ */
+   313→
+   314→  async function saveSettings() {
+   315→    setSaving(true);
+   316→    try {
+   317→      const res = await fetch("/api/admin/content", {
+   318→        method: "PUT",
+   319→        headers: { "Content-Type": "application/json" },
+   320→        body: JSON.stringify({ settings }),
+   321→      });
+   322→      if (res.ok) {
+   323→        toast.success("زانیاریەکان بە سەرکەوتوویی تۆمارکران");
+   324→        await refetch();
+   325→      } else {
+   326→        toast.error("هەڵەیەک ڕوویدا لە تۆمارکردن");
+   327→      }
+   328→    } catch {
+   329→      toast.error("هەڵەیەک ڕوویدا لە تۆمارکردن");
+   330→    }
+   331→    setSaving(false);
+   332→  }
+   333→
+   334→  async function saveDepartments() {
+   335→    setSaving(true);
+   336→    try {
+   337→      /* Sync all departments */
+   338→      for (const dept of departments) {
+   339→        if (dept.id.startsWith("new-")) {
+   340→          await fetch("/api/admin/departments", {
+   341→            method: "POST",
+   342→            headers: { "Content-Type": "application/json" },
+   343→            body: JSON.stringify({
+   344→              name: dept.name,
+   345→              description: dept.description,
+   346→              iconName: dept.iconName,
+   347→              image: dept.image,
+   348→              order: dept.order,
+   349→            }),
+   350→          });
+   351→        } else {
+   352→          await fetch("/api/admin/departments", {
+   353→            method: "PUT",
+   354→            headers: { "Content-Type": "application/json" },
+   355→            body: JSON.stringify(dept),
+   356→          });
+   357→        }
+   358→      }
+   359→      toast.success("بەشەکان بە سەرکەوتوویی تۆمارکران");
+   360→      await refetch();
+   361→      await fetchDepartments();
+   362→    } catch {
+   363→      toast.error("هەڵەیەک ڕوویدا لە تۆمارکردن");
+   364→    }
+   365→    setSaving(false);
+   366→  }
+   367→
+   368→  async function saveGallery() {
+   369→    setSaving(true);
+   370→    try {
+   371→      for (const item of galleryItems) {
+   372→        if (item.id.startsWith("new-")) {
+   373→          await fetch("/api/admin/gallery", {
+   374→            method: "POST",
+   375→            headers: { "Content-Type": "application/json" },
+   376→            body: JSON.stringify({
+   377→              title: item.title,
+   378→              description: item.description,
+   379→              image: item.image,
+   380→              color: item.color,
+   381→              order: item.order,
+   382→            }),
+   383→          });
+   384→        } else {
+   385→          await fetch("/api/admin/gallery", {
+   386→            method: "PUT",
+   387→            headers: { "Content-Type": "application/json" },
+   388→            body: JSON.stringify(item),
+   389→          });
+   390→        }
+   391→      }
+   392→      toast.success("گەلەری بە سەرکەوتوویی تۆمارکرا");
+   393→      await refetch();
+   394→      await fetchGallery();
+   395→    } catch {
+   396→      toast.error("هەڵەیەک ڕوویدا لە تۆمارکردن");
+   397→    }
+   398→    setSaving(false);
+   399→  }
+   400→
+   401→  async function saveArchive() {
+   402→    setSaving(true);
+   403→    try {
+   404→      for (const item of archiveItems) {
+   405→        if (item.id.startsWith("new-")) {
+   406→          await fetch("/api/admin/archive", {
+   407→            method: "POST",
+   408→            headers: { "Content-Type": "application/json" },
+   409→            body: JSON.stringify({
+   410→              title: item.title,
+   411→              description: item.description,
+   412→              date: item.date,
+   413→              category: item.category,
+   414→              image: item.image,
+   415→              color: item.color,
+   416→              order: item.order,
+   417→            }),
+   418→          });
+   419→        } else {
+   420→          await fetch("/api/admin/archive", {
+   421→            method: "PUT",
+   422→            headers: { "Content-Type": "application/json" },
+   423→            body: JSON.stringify(item),
+   424→          });
+   425→        }
+   426→      }
+   427→      toast.success("ئەرشیف بە سەرکەوتوویی تۆمارکرا");
+   428→      await refetch();
+   429→      await fetchArchive();
+   430→    } catch {
+   431→      toast.error("هەڵەیەک ڕوویدا لە تۆمارکردن");
+   432→    }
+   433→    setSaving(false);
+   434→  }
+   435→
+   436→  /* ============================
+   437→     DELETE HANDLERS
+   438→     ============================ */
+   439→
+   440→  async function deleteDepartment(id: string) {
+   441→    try {
+   442→      const res = await fetch(`/api/admin/departments?id=${id}`, { method: "DELETE" });
+   443→      if (res.ok) {
+   444→        setDepartments((prev) => prev.filter((d) => d.id !== id));
+   445→        toast.success("بەشەکە سڕایەوە");
+   446→        await refetch();
+   447→      }
+   448→    } catch {
+   449→      toast.error("هەڵەیەک ڕوویدا لە سڕینەوە");
+   450→    }
+   451→  }
+   452→
+   453→  async function deleteGalleryItem(id: string) {
+   454→    try {
+   455→      const res = await fetch(`/api/admin/gallery?id=${id}`, { method: "DELETE" });
+   456→      if (res.ok) {
+   457→        setGalleryItems((prev) => prev.filter((g) => g.id !== id));
+   458→        toast.success("بابەتەکە سڕایەوە");
+   459→        await refetch();
+   460→      }
+   461→    } catch {
+   462→      toast.error("هەڵەیەک ڕوویدا لە سڕینەوە");
+   463→    }
+   464→  }
+   465→
+   466→  async function deleteArchiveItem(id: string) {
+   467→    try {
+   468→      const res = await fetch(`/api/admin/archive?id=${id}`, { method: "DELETE" });
+   469→      if (res.ok) {
+   470→        setArchiveItems((prev) => prev.filter((a) => a.id !== id));
+   471→        toast.success("بابەتەکە سڕایەوە");
+   472→        await refetch();
+   473→      }
+   474→    } catch {
+   475→      toast.error("هەڵەیەک ڕوویدا لە سڕینەوە");
+   476→    }
+   477→  }
+   478→
+   479→  /* ============================
+   480→     IMAGE UPLOAD
+   481→     ============================ */
+   482→
+   483→  async function handleImageUpload(
+   484→    e: React.ChangeEvent<HTMLInputElement>,
+   485→    type: "department" | "gallery" | "archive",
+   486→    index: number
+   487→  ) {
+   488→    const file = e.target.files?.[0];
+   489→    if (!file) return;
+   490→
+   491→    const formData = new FormData();
+   492→    formData.append("file", file);
+   493→    formData.append("folder", type === "department" ? "departments" : type);
+   494→
+   495→    try {
+   496→      const res = await fetch("/api/admin/upload", {
+   497→        method: "POST",
+   498→        body: formData,
+   499→      });
+   500→      if (res.ok) {
+   501→        const data = await res.json();
+   502→        const url = data.url;
+   503→        if (type === "department") {
+   504→          setDepartments((prev) =>
+   505→            prev.map((d, i) => (i === index ? { ...d, image: url } : d))
+   506→          );
+   507→        } else if (type === "gallery") {
+   508→          setGalleryItems((prev) =>
+   509→            prev.map((g, i) => (i === index ? { ...g, image: url } : g))
+   510→          );
+   511→        } else {
+   512→          setArchiveItems((prev) =>
+   513→            prev.map((a, i) => (i === index ? { ...a, image: url } : a))
+   514→          );
+   515→        }
+   516→        toast.success("وێنەکە بارکرا");
+   517→      } else {
+   518→        toast.error("هەڵەیەک ڕوویدا لە بارکردنی وێنە");
+   519→      }
+   520→    } catch {
+   521→      toast.error("هەڵەیەک ڕوویدا لە بارکردنی وێنە");
+   522→    }
+   523→
+   524→    /* Reset file input */
+   525→    e.target.value = "";
+   526→  }
+   527→
+   528→  function triggerUpload(type: "department" | "gallery" | "archive", index: number) {
+   529→    setUploadTarget({ type, index });
+   530→    setTimeout(() => {
+   531→      if (type === "department") deptFileRef.current?.click();
+   532→      else if (type === "gallery") galFileRef.current?.click();
+   533→      else arcFileRef.current?.click();
+   534→    }, 50);
+   535→  }
+   536→
+   537→  /* Hidden file inputs */
+   538→  const hiddenFileInput = (
+   539→    type: "department" | "gallery" | "archive",
+   540→    index: number
+   541→  ) => {
+   542→    if (type === "department") return (
+   543→      <input
+   544→        ref={deptFileRef}
+   545→        type="file"
+   546→        accept="image/*"
+   547→        className="hidden"
+   548→        onChange={(e) => handleImageUpload(e, "department", index)}
+   549→      />
+   550→    );
+   551→    if (type === "gallery") return (
+   552→      <input
+   553→        ref={galFileRef}
+   554→        type="file"
+   555→        accept="image/*"
+   556→        className="hidden"
+   557→        onChange={(e) => handleImageUpload(e, "gallery", index)}
+   558→      />
+   559→    );
+   560→    return (
+   561→      <input
+   562→        ref={arcFileRef}
+   563→        type="file"
+   564→        accept="image/*"
+   565→        className="hidden"
+   566→        onChange={(e) => handleImageUpload(e, "archive", index)}
+   567→      />
+   568→    );
+   569→  };
+   570→
+   571→  /* ============================
+   572→     HELPER: Update setting
+   573→     ============================ */
+   574→
+   575→  function updateSetting(key: string, value: string) {
+   576→    setSettings((prev) => ({ ...prev, [key]: value }));
+   577→  }
+   578→
+   579→  /* ============================
+   580→     PASSWORD SCREEN
+   581→     ============================ */
+   582→
+   583→  function renderPasswordScreen() {
+   584→    return (
+   585→      <div className="flex-1 flex items-center justify-center p-6">
+   586→        <motion.div
+   587→          initial={{ opacity: 0, scale: 0.9 }}
+   588→          animate={{ opacity: 1, scale: 1 }}
+   589→          transition={{ duration: 0.3 }}
+   590→          className="w-full max-w-sm"
+   591→        >
+   592→          <div className="text-center mb-6">
+   593→            <div className="mx-auto w-16 h-16 rounded-full bg-teal-100 dark:bg-teal-900/30 flex items-center justify-center mb-4">
+   594→              <ShieldCheck className="w-8 h-8 text-teal-600" />
+   595→            </div>
+   596→            <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">
+   597→              پانێلی بەڕێوەبەر
+   598→            </h2>
+   599→            <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+   600→              تکایە وشەی نهێنی بنووسە بۆ چوونەژوورەوە
+   601→            </p>
+   602→          </div>
+   603→
+   604→          <form onSubmit={handlePasswordSubmit} className="space-y-4">
+   605→            <div className="space-y-2">
+   606→              <Label htmlFor="admin-password" className="text-gray-700 dark:text-gray-300">
+   607→                وشەی نهێنی
+   608→              </Label>
+   609→              <Input
+   610→                id="admin-password"
+   611→                type="password"
+   612→                placeholder="وشەی نهێنی..."
+   613→                value={passwordInput}
+   614→                onChange={(e) => setPasswordInput(e.target.value)}
+   615→                className="text-right"
+   616→                autoFocus
+   617→              />
+   618→            </div>
+   619→            <Button
+   620→              type="submit"
+   621→              className="w-full bg-teal-600 hover:bg-teal-700 text-white"
+   622→              disabled={passwordLoading || !passwordInput}
+   623→            >
+   624→              {passwordLoading ? (
+   625→                <Loader2 className="w-4 h-4 animate-spin ml-2" />
+   626→              ) : (
+   627→                <ChevronLeft className="w-4 h-4 ml-2" />
+   628→              )}
+   629→              چوونەژوورەوە
+   630→            </Button>
+   631→          </form>
+   632→        </motion.div>
+   633→      </div>
+   634→    );
+   635→  }
+   636→
+   637→  /* ============================
+   638→     HERO TAB
+   639→     ============================ */
+   640→
+   641→  function renderHeroTab() {
+   642→    if (loading) {
+   643→      return <LoadingSpinner />;
+   644→    }
+   645→
+   646→    const stats = [
+   647→      { valueKey: "stat1Value", labelKey: "stat1Label" },
+   648→      { valueKey: "stat2Value", labelKey: "stat2Label" },
+   649→      { valueKey: "stat3Value", labelKey: "stat3Label" },
+   650→      { valueKey: "stat4Value", labelKey: "stat4Label" },
+   651→    ];
+   652→
+   653→    return (
+   654→      <ScrollArea className="h-[calc(100vh-16rem)] px-1">
+   655→        <div className="space-y-6 pb-4">
+   656→          {/* Section titles */}
+   657→          <SettingsField
+   658→            label="ناونیشانی سەرەکی"
+   659→            value={settings.heroTitle || ""}
+   660→            onChange={(v) => updateSetting("heroTitle", v)}
+   661→          />
+   662→          <SettingsField
+   663→            label="ناوی ژێرەوە"
+   664→            value={settings.heroSubtitle || ""}
+   665→            onChange={(v) => updateSetting("heroSubtitle", v)}
+   666→          />
+   667→          <SettingsField
+   668→            label="پێناسە"
+   669→            value={settings.heroDescription || ""}
+   670→            onChange={(v) => updateSetting("heroDescription", v)}
+   671→            multiline
+   672→          />
+   673→          <SettingsField
+   674→            label="بەجگی سەرەوە"
+   675→            value={settings.heroBadge || ""}
+   676→            onChange={(v) => updateSetting("heroBadge", v)}
+   677→          />
+   678→
+   679→          <Separator />
+   680→
+   681→          <h3 className="font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+   682→            <Activity className="w-4 h-4 text-teal-600" />
+   683→            ئامارەکان
+   684→          </h3>
+   685→
+   686→          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+   687→            {stats.map((stat, idx) => (
+   688→              <Card
+   689→                key={idx}
+   690→                className="glass rounded-xl border border-white/20 dark:border-gray-700/30"
+   691→              >
+   692→                <CardContent className="p-4 space-y-3">
+   693→                  <div className="grid grid-cols-2 gap-3">
+   694→                    <div className="space-y-1.5">
+   695→                      <Label className="text-xs text-gray-500">بەها</Label>
+   696→                      <Input
+   697→                        value={settings[stat.valueKey] || ""}
+   698→                        onChange={(e) => updateSetting(stat.valueKey, e.target.value)}
+   699→                        className="text-center text-lg font-bold text-teal-700 dark:text-teal-400"
+   700→                      />
+   701→                    </div>
+   702→                    <div className="space-y-1.5">
+   703→                      <Label className="text-xs text-gray-500">ناو</Label>
+   704→                      <Input
+   705→                        value={settings[stat.labelKey] || ""}
+   706→                        onChange={(e) => updateSetting(stat.labelKey, e.target.value)}
+   707→                        className="text-center"
+   708→                      />
+   709→                    </div>
+   710→                  </div>
+   711→                </CardContent>
+   712→              </Card>
+   713→            ))}
+   714→          </div>
+   715→
+   716→          {/* Section titles for departments, gallery, archive */}
+   717→          <Separator />
+   718→          <h3 className="font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+   719→            <PenSquare className="w-4 h-4 text-teal-600" />
+   720→            ناوی بەشەکان
+   721→          </h3>
+   722→          <SettingsField
+   723→            label="ناوی بەشی نەخۆشخانەکان"
+   724→            value={settings.deptSectionTitle || ""}
+   725→            onChange={(v) => updateSetting("deptSectionTitle", v)}
+   726→          />
+   727→          <SettingsField
+   728→            label="پێناسەی بەشەکان"
+   729→            value={settings.deptSectionDesc || ""}
+   730→            onChange={(v) => updateSetting("deptSectionDesc", v)}
+   731→            multiline
+   732→          />
+   733→
+   734→          <Separator />
+   735→          <h3 className="font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+   736→            <PenSquare className="w-4 h-4 text-teal-600" />
+   737→            ناوی گەلەری
+   738→          </h3>
+   739→          <SettingsField
+   740→            label="ناوی بەشی گەلەری"
+   741→            value={settings.gallerySectionTitle || ""}
+   742→            onChange={(v) => updateSetting("gallerySectionTitle", v)}
+   743→          />
+   744→          <SettingsField
+   745→            label="پێناسەی گەلەری"
+   746→            value={settings.gallerySectionDesc || ""}
+   747→            onChange={(v) => updateSetting("gallerySectionDesc", v)}
+   748→            multiline
+   749→          />
+   750→
+   751→          <Separator />
+   752→          <h3 className="font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+   753→            <PenSquare className="w-4 h-4 text-teal-600" />
+   754→            ناوی ئەرشیف
+   755→          </h3>
+   756→          <SettingsField
+   757→            label="ناوی بەشی ئەرشیف"
+   758→            value={settings.archiveSectionTitle || ""}
+   759→            onChange={(v) => updateSetting("archiveSectionTitle", v)}
+   760→          />
+   761→          <SettingsField
+   762→            label="پێناسەی ئەرشیف"
+   763→            value={settings.archiveSectionDesc || ""}
+   764→            onChange={(v) => updateSetting("archiveSectionDesc", v)}
+   765→            multiline
+   766→          />
+   767→
+   768→          <div className="pt-4">
+   769→            <Button
+   770→              onClick={saveSettings}
+   771→              disabled={saving}
+   772→              className="w-full bg-teal-600 hover:bg-teal-700 text-white"
+   773→            >
+   774→              {saving ? (
+   775→                <Loader2 className="w-4 h-4 animate-spin ml-2" />
+   776→              ) : (
+   777→                <Save className="w-4 h-4 ml-2" />
+   778→              )}
+   779→              پاشەکەوتکردن
+   780→            </Button>
+   781→          </div>
+   782→        </div>
+   783→      </ScrollArea>
+   784→    );
+   785→  }
+   786→
+   787→  /* ============================
+   788→     DEPARTMENTS TAB
+   789→     ============================ */
+   790→
+   791→  function renderDepartmentsTab() {
+   792→    if (loading) {
+   793→      return <LoadingSpinner />;
+   794→    }
+   795→
+   796→    return (
+   797→      <ScrollArea className="h-[calc(100vh-16rem)] px-1">
+   798→        <div className="space-y-4 pb-4">
+   799→          {departments.map((dept, idx) => {
+   800→            const IconComp = ICON_MAP[dept.iconName] || HeartPulse;
+   801→            return (
+   802→              <motion.div
+   803→                key={dept.id}
+   804→                initial={{ opacity: 0, y: 10 }}
+   805→                animate={{ opacity: 1, y: 0 }}
+   806→                transition={{ delay: idx * 0.05 }}
+   807→              >
+   808→                <Card className="glass rounded-xl border border-white/20 dark:border-gray-700/30 overflow-hidden">
+   809→                  <CardHeader className="p-4 pb-2">
+   810→                    <div className="flex items-center justify-between">
+   811→                      <div className="flex items-center gap-2">
+   812→                        <div className="w-8 h-8 rounded-lg bg-teal-100 dark:bg-teal-900/30 flex items-center justify-center">
+   813→                          <IconComp className="w-4 h-4 text-teal-600" />
+   814→                        </div>
+   815→                        <Badge variant="outline" className="text-xs">
+   816→                          #{idx + 1}
+   817→                        </Badge>
+   818→                      </div>
+   819→                      <div className="flex items-center gap-1">
+   820→                        {dept.image && (
+   821→                          <div className="w-8 h-8 rounded-lg overflow-hidden ml-2">
+   822→                            <img
+   823→                              src={dept.image}
+   824→                              alt={dept.name}
+   825→                              className="w-full h-full object-cover"
+   826→                            />
+   827→                          </div>
+   828→                        )}
+   829→                        <AlertDialog>
+   830→                          <AlertDialogTrigger asChild>
+   831→                            <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20">
+   832→                              <Trash2 className="w-4 h-4" />
+   833→                            </Button>
+   834→                          </AlertDialogTrigger>
+   835→                          <AlertDialogContent dir="rtl">
+   836→                            <AlertDialogHeader>
+   837→                              <AlertDialogTitle>دڵنیای لە سڕینەوە؟</AlertDialogTitle>
+   838→                              <AlertDialogDescription>
+   839→                                دەتەوێت بەشی &quot;{dept.name}&quot; بسڕیتەوە؟ ئەم کردارە ناگەڕێتەوە.
+   840→                              </AlertDialogDescription>
+   841→                            </AlertDialogHeader>
+   842→                            <AlertDialogFooter>
+   843→                              <AlertDialogCancel>نەخێر</AlertDialogCancel>
+   844→                              <AlertDialogAction
+   845→                                className="bg-red-600 hover:bg-red-700"
+   846→                                onClick={() => deleteDepartment(dept.id)}
+   847→                              >
+   848→                                بەڵێ، بسڕەوە
+   849→                              </AlertDialogAction>
+   850→                            </AlertDialogFooter>
+   851→                          </AlertDialogContent>
+   852→                        </AlertDialog>
+   853→                      </div>
+   854→                    </div>
+   855→                  </CardHeader>
+   856→                  <CardContent className="p-4 pt-2 space-y-3">
+   857→                    <div className="space-y-1.5">
+   858→                      <Label className="text-xs text-gray-500">ناوی بەش</Label>
+   859→                      <Input
+   860→                        value={dept.name}
+   861→                        onChange={(e) =>
+   862→                          setDepartments((prev) =>
+   863→                            prev.map((d, i) =>
+   864→                              i === idx ? { ...d, name: e.target.value } : d
+   865→                            )
+   866→                          )
+   867→                        }
+   868→                      />
+   869→                    </div>
+   870→                    <div className="space-y-1.5">
+   871→                      <Label className="text-xs text-gray-500">پێناسە</Label>
+   872→                      <Textarea
+   873→                        value={dept.description}
+   874→                        onChange={(e) =>
+   875→                          setDepartments((prev) =>
+   876→                            prev.map((d, i) =>
+   877→                              i === idx ? { ...d, description: e.target.value } : d
+   878→                            )
+   879→                          )
+   880→                        }
+   881→                        rows={2}
+   882→                      />
+   883→                    </div>
+   884→                    <div className="grid grid-cols-2 gap-3">
+   885→                      <div className="space-y-1.5">
+   886→                        <Label className="text-xs text-gray-500">ئایکۆن</Label>
+   887→                        <Select
+   888→                          value={dept.iconName}
+   889→                          onValueChange={(v) =>
+   890→                            setDepartments((prev) =>
+   891→                              prev.map((d, i) =>
+   892→                                i === idx ? { ...d, iconName: v } : d
+   893→                              )
+   894→                            )
+   895→                          }
+   896→                        >
+   897→                          <SelectTrigger className="w-full">
+   898→                            <SelectValue />
+   899→                          </SelectTrigger>
+   900→                          <SelectContent>
+   901→                            {DEPARTMENT_ICONS.map((icon) => (
+   902→                              <SelectItem key={icon} value={icon}>
+   903→                                {ICON_LABELS[icon] || icon}
+   904→                              </SelectItem>
+   905→                            ))}
+   906→                          </SelectContent>
+   907→                        </Select>
+   908→                      </div>
+   909→                      <div className="space-y-1.5">
+   910→                        <Label className="text-xs text-gray-500">ڕیزبەندی</Label>
+   911→                        <Input
+   912→                          type="number"
+   913→                          value={dept.order}
+   914→                          onChange={(e) =>
+   915→                            setDepartments((prev) =>
+   916→                              prev.map((d, i) =>
+   917→                                i === idx
+   918→                                  ? { ...d, order: parseInt(e.target.value) || 0 }
+   919→                                  : d
+   920→                              )
+   921→                            )
+   922→                          }
+   923→                        />
+   924→                      </div>
+   925→                    </div>
+   926→                    <div className="flex gap-2">
+   927→                      <Button
+   928→                        variant="outline"
+   929→                        size="sm"
+   930→                        onClick={() => triggerUpload("department", idx)}
+   931→                        className="text-xs flex-1"
+   932→                      >
+   933→                        <Upload className="w-3.5 h-3.5 ml-1" />
+   934→                        بارکردنی وێنە
+   935→                      </Button>
+   936→                      {dept.image && (
+   937→                        <Button
+   938→                          variant="outline"
+   939→                          size="sm"
+   940→                          onClick={() =>
+   941→                            setDepartments((prev) =>
+   942→                              prev.map((d, i) =>
+   943→                                i === idx ? { ...d, image: null } : d
+   944→                              )
+   945→                            )
+   946→                          }
+   947→                          className="text-xs text-red-500"
+   948→                        >
+   949→                          <X className="w-3.5 h-3.5" />
+   950→                        </Button>
+   951→                      )}
+   952→                    </div>
+   953→                    {hiddenFileInput("department", idx)}
+   954→                  </CardContent>
+   955→                </Card>
+   956→              </motion.div>
+   957→            );
+   958→          })}
+   959→
+   960→          <Button
+   961→            variant="dashed"
+   962→            onClick={() =>
+   963→              setDepartments((prev) => [
+   964→                ...prev,
+   965→                {
+   966→                  id: `new-${Date.now()}`,
+   967→                  name: "",
+   968→                  description: "",
+   969→                  iconName: "HeartPulse",
+   970→                  image: null,
+   971→                  order: prev.length,
+   972→                },
+   973→              ])
+   974→            }
+   975→            className="w-full border-dashed border-2 border-gray-300 dark:border-gray-600 text-gray-500 hover:text-teal-600 hover:border-teal-500"
+   976→          >
+   977→            <Plus className="w-4 h-4 ml-2" />
+   978→            زیادکردنی بەشی نوێ
+   979→          </Button>
+   980→
+   981→          <div className="pt-4">
+   982→            <Button
+   983→              onClick={saveDepartments}
+   984→              disabled={saving}
+   985→              className="w-full bg-teal-600 hover:bg-teal-700 text-white"
+   986→            >
+   987→              {saving ? (
+   988→                <Loader2 className="w-4 h-4 animate-spin ml-2" />
+   989→              ) : (
+   990→                <Save className="w-4 h-4 ml-2" />
+   991→              )}
+   992→              پاشەکەوتکردن
+   993→            </Button>
+   994→          </div>
+   995→        </div>
+   996→      </ScrollArea>
+   997→    );
+   998→  }
+   999→
+  1000→  /* ============================
+  1001→     GALLERY TAB
+  1002→     ============================ */
+  1003→
+  1004→  function renderGalleryTab() {
+  1005→    if (loading) {
+  1006→      return <LoadingSpinner />;
+  1007→    }
+  1008→
+  1009→    return (
+  1010→      <ScrollArea className="h-[calc(100vh-16rem)] px-1">
+  1011→        <div className="space-y-4 pb-4">
+  1012→          {galleryItems.map((item, idx) => (
+  1013→            <motion.div
+  1014→              key={item.id}
+  1015→              initial={{ opacity: 0, y: 10 }}
+  1016→              animate={{ opacity: 1, y: 0 }}
+  1017→              transition={{ delay: idx * 0.05 }}
+  1018→            >
+  1019→              <Card className="glass rounded-xl border border-white/20 dark:border-gray-700/30 overflow-hidden">
+  1020→                <CardHeader className="p-4 pb-2">
+  1021→                  <div className="flex items-center justify-between">
+  1022→                    <div className="flex items-center gap-2">
+  1023→                      <div className="w-8 h-8 rounded-lg bg-teal-100 dark:bg-teal-900/30 flex items-center justify-center">
+  1024→                        <ImageIcon className="w-4 h-4 text-teal-600" />
+  1025→                      </div>
+  1026→                      <Badge variant="outline" className="text-xs">
+  1027→                        #{idx + 1}
+  1028→                      </Badge>
+  1029→                      {item.image && (
+  1030→                        <div className="w-8 h-8 rounded-lg overflow-hidden">
+  1031→                          <img
+  1032→                            src={item.image}
+  1033→                            alt={item.title}
+  1034→                            className="w-full h-full object-cover"
+  1035→                          />
+  1036→                        </div>
+  1037→                      )}
+  1038→                    </div>
+  1039→                    <AlertDialog>
+  1040→                      <AlertDialogTrigger asChild>
+  1041→                        <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20">
+  1042→                          <Trash2 className="w-4 h-4" />
+  1043→                        </Button>
+  1044→                      </AlertDialogTrigger>
+  1045→                      <AlertDialogContent dir="rtl">
+  1046→                        <AlertDialogHeader>
+  1047→                          <AlertDialogTitle>دڵنیای لە سڕینەوە؟</AlertDialogTitle>
+  1048→                          <AlertDialogDescription>
+  1049→                            دەتەوێت &quot;{item.title}&quot; بسڕیتەوە؟ ئەم کردارە ناگەڕێتەوە.
+  1050→                          </AlertDialogDescription>
+  1051→                        </AlertDialogHeader>
+  1052→                        <AlertDialogFooter>
+  1053→                          <AlertDialogCancel>نەخێر</AlertDialogCancel>
+  1054→                          <AlertDialogAction
+  1055→                            className="bg-red-600 hover:bg-red-700"
+  1056→                            onClick={() => deleteGalleryItem(item.id)}
+  1057→                          >
+  1058→                            بەڵێ، بسڕەوە
+  1059→                          </AlertDialogAction>
+  1060→                        </AlertDialogFooter>
+  1061→                      </AlertDialogContent>
+  1062→                    </AlertDialog>
+  1063→                  </div>
+  1064→                </CardHeader>
+  1065→                <CardContent className="p-4 pt-2 space-y-3">
+  1066→                  <div className="space-y-1.5">
+  1067→                    <Label className="text-xs text-gray-500">ناونیشان</Label>
+  1068→                    <Input
+  1069→                      value={item.title}
+  1070→                      onChange={(e) =>
+  1071→                        setGalleryItems((prev) =>
+  1072→                          prev.map((g, i) =>
+  1073→                            i === idx ? { ...g, title: e.target.value } : g
+  1074→                          )
+  1075→                        )
+  1076→                      }
+  1077→                    />
+  1078→                  </div>
+  1079→                  <div className="space-y-1.5">
+  1080→                    <Label className="text-xs text-gray-500">پێناسە</Label>
+  1081→                    <Textarea
+  1082→                      value={item.description}
+  1083→                      onChange={(e) =>
+  1084→                        setGalleryItems((prev) =>
+  1085→                          prev.map((g, i) =>
+  1086→                            i === idx ? { ...g, description: e.target.value } : g
+  1087→                          )
+  1088→                        )
+  1089→                      }
+  1090→                      rows={2}
+  1091→                    />
+  1092→                  </div>
+  1093→
+  1094→                  {/* Color picker */}
+  1095→                  <div className="space-y-1.5">
+  1096→                    <Label className="text-xs text-gray-500">ڕەنگ</Label>
+  1097→                    <div className="flex flex-wrap gap-2">
+  1098→                      {PRESET_COLORS.map((c) => (
+  1099→                        <button
+  1100→                          key={c.value}
+  1101→                          type="button"
+  1102→                          onClick={() =>
+  1103→                            setGalleryItems((prev) =>
+  1104→                              prev.map((g, i) =>
+  1105→                                i === idx ? { ...g, color: c.value } : g
+  1106→                              )
+  1107→                            )
+  1108→                          }
+  1109→                          className={`w-7 h-7 rounded-lg bg-gradient-to-br ${c.value} transition-all ${
+  1110→                            item.color === c.value
+  1111→                              ? "ring-2 ring-teal-500 ring-offset-2 scale-110"
+  1112→                              : "hover:scale-105"
+  1113→                          }`}
+  1114→                          title={c.label}
+  1115→                        />
+  1116→                      ))}
+  1117→                    </div>
+  1118→                  </div>
+  1119→
+  1120→                  <div className="grid grid-cols-2 gap-3">
+  1121→                    <div className="space-y-1.5">
+  1122→                      <Label className="text-xs text-gray-500">ڕیزبەندی</Label>
+  1123→                      <Input
+  1124→                        type="number"
+  1125→                        value={item.order}
+  1126→                        onChange={(e) =>
+  1127→                          setGalleryItems((prev) =>
+  1128→                            prev.map((g, i) =>
+  1129→                              i === idx
+  1130→                                ? { ...g, order: parseInt(e.target.value) || 0 }
+  1131→                                : g
+  1132→                            )
+  1133→                          )
+  1134→                        }
+  1135→                      />
+  1136→                    </div>
+  1137→                  </div>
+  1138→
+  1139→                  <div className="flex gap-2">
+  1140→                    <Button
+  1141→                      variant="outline"
+  1142→                      size="sm"
+  1143→                      onClick={() => triggerUpload("gallery", idx)}
+  1144→                      className="text-xs flex-1"
+  1145→                    >
+  1146→                      <Upload className="w-3.5 h-3.5 ml-1" />
+  1147→                      بارکردنی وێنە
+  1148→                    </Button>
+  1149→                    {item.image && (
+  1150→                      <Button
+  1151→                        variant="outline"
+  1152→                        size="sm"
+  1153→                        onClick={() =>
+  1154→                          setGalleryItems((prev) =>
+  1155→                            prev.map((g, i) =>
+  1156→                              i === idx ? { ...g, image: null } : g
+  1157→                            )
+  1158→                          )
+  1159→                        }
+  1160→                        className="text-xs text-red-500"
+  1161→                      >
+  1162→                        <X className="w-3.5 h-3.5" />
+  1163→                      </Button>
+  1164→                    )}
+  1165→                  </div>
+  1166→                  {hiddenFileInput("gallery", idx)}
+  1167→                </CardContent>
+  1168→              </Card>
+  1169→            </motion.div>
+  1170→          ))}
+  1171→
+  1172→          <Button
+  1173→            variant="dashed"
+  1174→            onClick={() =>
+  1175→              setGalleryItems((prev) => [
+  1176→                ...prev,
+  1177→                {
+  1178→                  id: `new-${Date.now()}`,
+  1179→                  title: "",
+  1180→                  description: "",
+  1181→                  image: null,
+  1182→                  color: "from-teal-600/80 to-emerald-700/80",
+  1183→                  order: prev.length,
+  1184→                },
+  1185→              ])
+  1186→            }
+  1187→            className="w-full border-dashed border-2 border-gray-300 dark:border-gray-600 text-gray-500 hover:text-teal-600 hover:border-teal-500"
+  1188→          >
+  1189→            <Plus className="w-4 h-4 ml-2" />
+  1190→            زیادکردنی بابەتی نوێ
+  1191→          </Button>
+  1192→
+  1193→          <div className="pt-4">
+  1194→            <Button
+  1195→              onClick={saveGallery}
+  1196→              disabled={saving}
+  1197→              className="w-full bg-teal-600 hover:bg-teal-700 text-white"
+  1198→            >
+  1199→              {saving ? (
+  1200→                <Loader2 className="w-4 h-4 animate-spin ml-2" />
+  1201→              ) : (
+  1202→                <Save className="w-4 h-4 ml-2" />
+  1203→              )}
+  1204→              پاشەکەوتکردن
+  1205→            </Button>
+  1206→          </div>
+  1207→        </div>
+  1208→      </ScrollArea>
+  1209→    );
+  1210→  }
+  1211→
+  1212→  /* ============================
+  1213→     ARCHIVE TAB
+  1214→     ============================ */
+  1215→
+  1216→  function renderArchiveTab() {
+  1217→    if (loading) {
+  1218→      return <LoadingSpinner />;
+  1219→    }
+  1220→
+  1221→    return (
+  1222→      <ScrollArea className="h-[calc(100vh-16rem)] px-1">
+  1223→        <div className="space-y-4 pb-4">
+  1224→          {archiveItems.map((item, idx) => (
+  1225→            <motion.div
+  1226→              key={item.id}
+  1227→              initial={{ opacity: 0, y: 10 }}
+  1228→              animate={{ opacity: 1, y: 0 }}
+  1229→              transition={{ delay: idx * 0.05 }}
+  1230→            >
+  1231→              <Card className="glass rounded-xl border border-white/20 dark:border-gray-700/30 overflow-hidden">
+  1232→                <CardHeader className="p-4 pb-2">
+  1233→                  <div className="flex items-center justify-between">
+  1234→                    <div className="flex items-center gap-2">
+  1235→                      <div className="w-8 h-8 rounded-lg bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center">
+  1236→                        <Archive className="w-4 h-4 text-amber-600" />
+  1237→                      </div>
+  1238→                      <Badge variant="outline" className="text-xs">
+  1239→                        #{idx + 1}
+  1240→                      </Badge>
+  1241→                      {item.image && (
+  1242→                        <div className="w-8 h-8 rounded-lg overflow-hidden">
+  1243→                          <img
+  1244→                            src={item.image}
+  1245→                            alt={item.title}
+  1246→                            className="w-full h-full object-cover"
+  1247→                          />
+  1248→                        </div>
+  1249→                      )}
+  1250→                    </div>
+  1251→                    <AlertDialog>
+  1252→                      <AlertDialogTrigger asChild>
+  1253→                        <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20">
+  1254→                          <Trash2 className="w-4 h-4" />
+  1255→                        </Button>
+  1256→                      </AlertDialogTrigger>
+  1257→                      <AlertDialogContent dir="rtl">
+  1258→                        <AlertDialogHeader>
+  1259→                          <AlertDialogTitle>دڵنیای لە سڕینەوە؟</AlertDialogTitle>
+  1260→                          <AlertDialogDescription>
+  1261→                            دەتەوێت &quot;{item.title}&quot; بسڕیتەوە؟ ئەم کردارە ناگەڕێتەوە.
+  1262→                          </AlertDialogDescription>
+  1263→                        </AlertDialogHeader>
+  1264→                        <AlertDialogFooter>
+  1265→                          <AlertDialogCancel>نەخێر</AlertDialogCancel>
+  1266→                          <AlertDialogAction
+  1267→                            className="bg-red-600 hover:bg-red-700"
+  1268→                            onClick={() => deleteArchiveItem(item.id)}
+  1269→                          >
+  1270→                            بەڵێ، بسڕەوە
+  1271→                          </AlertDialogAction>
+  1272→                        </AlertDialogFooter>
+  1273→                      </AlertDialogContent>
+  1274→                    </AlertDialog>
+  1275→                  </div>
+  1276→                </CardHeader>
+  1277→                <CardContent className="p-4 pt-2 space-y-3">
+  1278→                  <div className="space-y-1.5">
+  1279→                    <Label className="text-xs text-gray-500">ناونیشان</Label>
+  1280→                    <Input
+  1281→                      value={item.title}
+  1282→                      onChange={(e) =>
+  1283→                        setArchiveItems((prev) =>
+  1284→                          prev.map((a, i) =>
+  1285→                            i === idx ? { ...a, title: e.target.value } : a
+  1286→                          )
+  1287→                        )
+  1288→                      }
+  1289→                    />
+  1290→                  </div>
+  1291→                  <div className="space-y-1.5">
+  1292→                    <Label className="text-xs text-gray-500">پێناسە</Label>
+  1293→                    <Textarea
+  1294→                      value={item.description}
+  1295→                      onChange={(e) =>
+  1296→                        setArchiveItems((prev) =>
+  1297→                          prev.map((a, i) =>
+  1298→                            i === idx ? { ...a, description: e.target.value } : a
+  1299→                          )
+  1300→                        )
+  1301→                      }
+  1302→                      rows={2}
+  1303→                    />
+  1304→                  </div>
+  1305→                  <div className="grid grid-cols-2 gap-3">
+  1306→                    <div className="space-y-1.5">
+  1307→                      <Label className="text-xs text-gray-500">بەروار</Label>
+  1308→                      <Input
+  1309→                        value={item.date}
+  1310→                        onChange={(e) =>
+  1311→                          setArchiveItems((prev) =>
+  1312→                            prev.map((a, i) =>
+  1313→                              i === idx ? { ...a, date: e.target.value } : a
+  1314→                            )
+  1315→                          )
+  1316→                        }
+  1317→                        placeholder="٢٠٢٥/٠١/٠١"
+  1318→                      />
+  1319→                    </div>
+  1320→                    <div className="space-y-1.5">
+  1321→                      <Label className="text-xs text-gray-500">جۆر</Label>
+  1322→                      <Input
+  1323→                        value={item.category}
+  1324→                        onChange={(e) =>
+  1325→                          setArchiveItems((prev) =>
+  1326→                            prev.map((a, i) =>
+  1327→                              i === idx ? { ...a, category: e.target.value } : a
+  1328→                            )
+  1329→                          )
+  1330→                        }
+  1331→                        placeholder="هەواڵ"
+  1332→                      />
+  1333→                    </div>
+  1334→                  </div>
+  1335→
+  1336→                  {/* Color picker */}
+  1337→                  <div className="space-y-1.5">
+  1338→                    <Label className="text-xs text-gray-500">ڕەنگ</Label>
+  1339→                    <div className="flex flex-wrap gap-2">
+  1340→                      {PRESET_COLORS.map((c) => (
+  1341→                        <button
+  1342→                          key={c.value}
+  1343→                          type="button"
+  1344→                          onClick={() =>
+  1345→                            setArchiveItems((prev) =>
+  1346→                              prev.map((a, i) =>
+  1347→                                i === idx ? { ...a, color: c.value } : a
+  1348→                              )
+  1349→                            )
+  1350→                          }
+  1351→                          className={`w-7 h-7 rounded-lg bg-gradient-to-br ${c.value} transition-all ${
+  1352→                            item.color === c.value
+  1353→                              ? "ring-2 ring-teal-500 ring-offset-2 scale-110"
+  1354→                              : "hover:scale-105"
+  1355→                          }`}
+  1356→                          title={c.label}
+  1357→                        />
+  1358→                      ))}
+  1359→                    </div>
+  1360→                  </div>
+  1361→
+  1362→                  <div className="space-y-1.5">
+  1363→                    <Label className="text-xs text-gray-500">ڕیزبەندی</Label>
+  1364→                    <Input
+  1365→                      type="number"
+  1366→                      value={item.order}
+  1367→                      onChange={(e) =>
+  1368→                        setArchiveItems((prev) =>
+  1369→                          prev.map((a, i) =>
+  1370→                            i === idx
+  1371→                              ? { ...a, order: parseInt(e.target.value) || 0 }
+  1372→                              : a
+  1373→                          )
+  1374→                        )
+  1375→                      }
+  1376→                    />
+  1377→                  </div>
+  1378→
+  1379→                  <div className="flex gap-2">
+  1380→                    <Button
+  1381→                      variant="outline"
+  1382→                      size="sm"
+  1383→                      onClick={() => triggerUpload("archive", idx)}
+  1384→                      className="text-xs flex-1"
+  1385→                    >
+  1386→                      <Upload className="w-3.5 h-3.5 ml-1" />
+  1387→                      بارکردنی وێنە
+  1388→                    </Button>
+  1389→                    {item.image && (
+  1390→                      <Button
+  1391→                        variant="outline"
+  1392→                        size="sm"
+  1393→                        onClick={() =>
+  1394→                          setArchiveItems((prev) =>
+  1395→                            prev.map((a, i) =>
+  1396→                              i === idx ? { ...a, image: null } : a
+  1397→                            )
+  1398→                          )
+  1399→                        }
+  1400→                        className="text-xs text-red-500"
+  1401→                      >
+  1402→                        <X className="w-3.5 h-3.5" />
+  1403→                      </Button>
+  1404→                    )}
+  1405→                  </div>
+  1406→                  {hiddenFileInput("archive", idx)}
+  1407→                </CardContent>
+  1408→              </Card>
+  1409→            </motion.div>
+  1410→          ))}
+  1411→
+  1412→          <Button
+  1413→            variant="dashed"
+  1414→            onClick={() =>
+  1415→              setArchiveItems((prev) => [
+  1416→                ...prev,
+  1417→                {
+  1418→                  id: `new-${Date.now()}`,
+  1419→                  title: "",
+  1420→                  description: "",
+  1421→                  date: "",
+  1422→                  category: "",
+  1423→                  image: null,
+  1424→                  color: "from-amber-600/70 to-orange-700/70",
+  1425→                  order: prev.length,
+  1426→                },
+  1427→              ])
+  1428→            }
+  1429→            className="w-full border-dashed border-2 border-gray-300 dark:border-gray-600 text-gray-500 hover:text-teal-600 hover:border-teal-500"
+  1430→          >
+  1431→            <Plus className="w-4 h-4 ml-2" />
+  1432→            زیادکردنی بابەتی نوێ
+  1433→          </Button>
+  1434→
+  1435→          <div className="pt-4">
+  1436→            <Button
+  1437→              onClick={saveArchive}
+  1438→              disabled={saving}
+  1439→              className="w-full bg-teal-600 hover:bg-teal-700 text-white"
+  1440→            >
+  1441→              {saving ? (
+  1442→                <Loader2 className="w-4 h-4 animate-spin ml-2" />
+  1443→              ) : (
+  1444→                <Save className="w-4 h-4 ml-2" />
+  1445→              )}
+  1446→              پاشەکەوتکردن
+  1447→            </Button>
+  1448→          </div>
+  1449→        </div>
+  1450→      </ScrollArea>
+  1451→    );
+  1452→  }
+  1453→
+  1454→  /* ============================
+  1455→     CONTACT TAB
+  1456→     ============================ */
+  1457→
+  1458→  function renderContactTab() {
+  1459→    if (loading) {
+  1460→      return <LoadingSpinner />;
+  1461→    }
+  1462→
+  1463→    return (
+  1464→      <ScrollArea className="h-[calc(100vh-16rem)] px-1">
+  1465→        <div className="space-y-6 pb-4">
+  1466→          {/* Hospital Names */}
+  1467→          <Card className="glass rounded-xl border border-white/20 dark:border-gray-700/30">
+  1468→            <CardHeader className="p-4 pb-2">
+  1469→              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+  1470→                <Settings className="w-4 h-4 text-teal-600" />
+  1471→                زانیاری نەخۆشخانە
+  1472→              </CardTitle>
+  1473→            </CardHeader>
+  1474→            <CardContent className="p-4 pt-2 space-y-3">
+  1475→              <SettingsField
+  1476→                label="ناوی نەخۆشخانە (کوردی)"
+  1477→                value={settings.hospitalNameKu || ""}
+  1478→                onChange={(v) => updateSetting("hospitalNameKu", v)}
+  1479→              />
+  1480→              <SettingsField
+  1481→                label="ناوی نەخۆشخانە (ئینگلیزی)"
+  1482→                value={settings.hospitalNameEn || ""}
+  1483→                onChange={(v) => updateSetting("hospitalNameEn", v)}
+  1484→              />
+  1485→            </CardContent>
+  1486→          </Card>
+  1487→
+  1488→          {/* Phone & Email */}
+  1489→          <Card className="glass rounded-xl border border-white/20 dark:border-gray-700/30">
+  1490→            <CardHeader className="p-4 pb-2">
+  1491→              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+  1492→                <Phone className="w-4 h-4 text-teal-600" />
+  1493→                پەیوەندی
+  1494→              </CardTitle>
+  1495→            </CardHeader>
+  1496→            <CardContent className="p-4 pt-2 space-y-3">
+  1497→              <SettingsField
+  1498→                label="ژمارەی تەلەفۆن ١"
+  1499→                value={settings.phone1 || ""}
+  1500→                onChange={(v) => updateSetting("phone1", v)}
+  1501→              />
+  1502→              <SettingsField
+  1503→                label="ژمارەی تەلەفۆن ٢"
+  1504→                value={settings.phone2 || ""}
+  1505→                onChange={(v) => updateSetting("phone2", v)}
+  1506→              />
+  1507→              <SettingsField
+  1508→                label="ئیمەیل"
+  1509→                value={settings.email || ""}
+  1510→                onChange={(v) => updateSetting("email", v)}
+  1511→              />
+  1512→              <SettingsField
+  1513→                label="ناونیشان"
+  1514→                value={settings.addressKu || ""}
+  1515→                onChange={(v) => updateSetting("addressKu", v)}
+  1516→              />
+  1517→              <SettingsField
+  1518→                label="کاتەکانی کارکردن"
+  1519→                value={settings.workingHours || ""}
+  1520→                onChange={(v) => updateSetting("workingHours", v)}
+  1521→              />
+  1522→            </CardContent>
+  1523→          </Card>
+  1524→
+  1525→          {/* Social Media */}
+  1526→          <Card className="glass rounded-xl border border-white/20 dark:border-gray-700/30">
+  1527→            <CardHeader className="p-4 pb-2">
+  1528→              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+  1529→                <Eye className="w-4 h-4 text-teal-600" />
+  1530→                تۆڕە کۆمەڵایەتیەکان
+  1531→              </CardTitle>
+  1532→            </CardHeader>
+  1533→            <CardContent className="p-4 pt-2 space-y-3">
+  1534→              <SettingsField
+  1535→                label="فەیسبووک"
+  1536→                value={settings.facebookUrl || ""}
+  1537→                onChange={(v) => updateSetting("facebookUrl", v)}
+  1538→              />
+  1539→              <SettingsField
+  1540→                label="ئینستاگرام"
+  1541→                value={settings.instagramUrl || ""}
+  1542→                onChange={(v) => updateSetting("instagramUrl", v)}
+  1543→              />
+  1544→              <SettingsField
+  1545→                label="تویتەر (X)"
+  1546→                value={settings.twitterUrl || ""}
+  1547→                onChange={(v) => updateSetting("twitterUrl", v)}
+  1548→              />
+  1549→              <SettingsField
+  1550→                label="یوتیوب"
+  1551→                value={settings.youtubeUrl || ""}
+  1552→                onChange={(v) => updateSetting("youtubeUrl", v)}
+  1553→              />
+  1554→            </CardContent>
+  1555→          </Card>
+  1556→
+  1557→          {/* Footer */}
+  1558→          <Card className="glass rounded-xl border border-white/20 dark:border-gray-700/30">
+  1559→            <CardHeader className="p-4 pb-2">
+  1560→              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+  1561→                <PenSquare className="w-4 h-4 text-teal-600" />
+  1562→                پێشەکی
+  1563→              </CardTitle>
+  1564→            </CardHeader>
+  1565→            <CardContent className="p-4 pt-2 space-y-3">
+  1566→              <SettingsField
+  1567→                label="پێناسەی خوارەوە"
+  1568→                value={settings.footerDescription || ""}
+  1569→                onChange={(v) => updateSetting("footerDescription", v)}
+  1570→                multiline
+  1571→              />
+  1572→            </CardContent>
+  1573→          </Card>
+  1574→
+  1575→          <div className="pt-4">
+  1576→            <Button
+  1577→              onClick={saveSettings}
+  1578→              disabled={saving}
+  1579→              className="w-full bg-teal-600 hover:bg-teal-700 text-white"
+  1580→            >
+  1581→              {saving ? (
+  1582→                <Loader2 className="w-4 h-4 animate-spin ml-2" />
+  1583→              ) : (
+  1584→                <Save className="w-4 h-4 ml-2" />
+  1585→              )}
+  1586→              پاشەکەوتکردن
+  1587→            </Button>
+  1588→          </div>
+  1589→        </div>
+  1590→      </ScrollArea>
+  1591→    );
+  1592→  }
+  1593→
+  1594→  /* ============================
+  1595→     RENDER
+  1596→     ============================ */
+  1597→
+  1598→  return (
+  1599→    <>
+  1600→      {/* Floating Admin Button */}
+  1601→      <motion.div
+  1602→        className="fixed bottom-6 left-6 z-40"
+  1603→        initial={{ scale: 0, opacity: 0 }}
+  1604→        animate={{ scale: 1, opacity: 1 }}
+  1605→        transition={{ delay: 1, type: "spring", stiffness: 200 }}
+  1606→      >
+  1607→        <button
+  1608→          onClick={() => setOpen(true)}
+  1609→          className="group relative w-12 h-12 rounded-full bg-teal-600 hover:bg-teal-700 text-white shadow-lg shadow-teal-600/30 transition-all duration-300 hover:shadow-xl hover:shadow-teal-600/40 hover:scale-110 flex items-center justify-center"
+  1610→          aria-label="پانێلی بەڕێوەبەر"
+  1611→        >
+  1612→          <Settings className="w-5 h-5 transition-transform duration-500 group-hover:rotate-180" />
+  1613→
+  1614→          {/* Pulse animation ring */}
+  1615→          <span className="absolute inset-0 rounded-full bg-teal-600 animate-ping opacity-20" />
+  1616→        </button>
+  1617→      </motion.div>
+  1618→
+  1619→      {/* Admin Panel Sheet */}
+  1620→      <Sheet open={open} onOpenChange={handleOpenChange}>
+  1621→        <SheetContent
+  1622→          side="left"
+  1623→          dir="rtl"
+  1624→          className="w-[95vw] max-w-2xl sm:max-w-3xl p-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border-r border-white/20 dark:border-gray-700/30 overflow-hidden"
+  1625→        >
+  1626→          {!authenticated ? (
+  1627→            renderPasswordScreen()
+  1628→          ) : (
+  1629→            <div className="flex flex-col h-full">
+  1630→              {/* Header */}
+  1631→              <SheetHeader className="p-4 pb-0 shrink-0">
+  1632→                <SheetTitle className="text-lg font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
+  1633→                  <div className="w-8 h-8 rounded-lg bg-teal-100 dark:bg-teal-900/30 flex items-center justify-center">
+  1634→                    <ShieldCheck className="w-4 h-4 text-teal-600" />
+  1635→                  </div>
+  1636→                  پانێلی بەڕێوەبەر
+  1637→                </SheetTitle>
+  1638→                <SheetDescription className="text-xs text-gray-500">
+  1639→                  ئێرە دەتوانیت هەموو بابەتەکانی وێبسایت بەڕێوەبەری بکەیت
+  1640→                </SheetDescription>
+  1641→              </SheetHeader>
+  1642→
+  1643→              {/* Tabs */}
+  1644→              <div className="px-4 pt-3 shrink-0">
+  1645→                <Tabs
+  1646→                  value={activeTab}
+  1647→                  onValueChange={handleTabChange}
+  1648→                  className="w-full"
+  1649→                >
+  1650→                  <TabsList className="w-full h-auto flex-wrap gap-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-xl">
+  1651→                    <TabsTrigger
+  1652→                      value="hero"
+  1653→                      className="flex-1 min-w-0 text-xs py-2 rounded-lg data-[state=active]:bg-teal-600 data-[state=active]:text-white data-[state=active]:shadow-md"
+  1654→                    >
+  1655→                      <HeartPulse className="w-3.5 h-3.5 ml-1 hidden sm:block" />
+  1656→                      <span className="truncate">بەشە سەرەکی</span>
+  1657→                    </TabsTrigger>
+  1658→                    <TabsTrigger
+  1659→                      value="departments"
+  1660→                      className="flex-1 min-w-0 text-xs py-2 rounded-lg data-[state=active]:bg-teal-600 data-[state=active]:text-white data-[state=active]:shadow-md"
+  1661→                    >
+  1662→                      <Stethoscope className="w-3.5 h-3.5 ml-1 hidden sm:block" />
+  1663→                      <span className="truncate">بەشەکان</span>
+  1664→                    </TabsTrigger>
+  1665→                    <TabsTrigger
+  1666→                      value="gallery"
+  1667→                      className="flex-1 min-w-0 text-xs py-2 rounded-lg data-[state=active]:bg-teal-600 data-[state=active]:text-white data-[state=active]:shadow-md"
+  1668→                    >
+  1669→                      <ImageIcon className="w-3.5 h-3.5 ml-1 hidden sm:block" />
+  1670→                      <span className="truncate">گەلەری</span>
+  1671→                    </TabsTrigger>
+  1672→                    <TabsTrigger
+  1673→                      value="archive"
+  1674→                      className="flex-1 min-w-0 text-xs py-2 rounded-lg data-[state=active]:bg-teal-600 data-[state=active]:text-white data-[state=active]:shadow-md"
+  1675→                    >
+  1676→                      <Archive className="w-3.5 h-3.5 ml-1 hidden sm:block" />
+  1677→                      <span className="truncate">ئەرشیف</span>
+  1678→                    </TabsTrigger>
+  1679→                    <TabsTrigger
+  1680→                      value="contact"
+  1681→                      className="flex-1 min-w-0 text-xs py-2 rounded-lg data-[state=active]:bg-teal-600 data-[state=active]:text-white data-[state=active]:shadow-md"
+  1682→                    >
+  1683→                      <Phone className="w-3.5 h-3.5 ml-1 hidden sm:block" />
+  1684→                      <span className="truncate">پەیوەندی</span>
+  1685→                    </TabsTrigger>
+  1686→                  </TabsList>
+  1687→
+  1688→                  {/* Tab Content */}
+  1689→                  <div className="mt-4">
+  1690→                    <TabsContent value="hero">
+  1691→                      {renderHeroTab()}
+  1692→                    </TabsContent>
+  1693→                    <TabsContent value="departments">
+  1694→                      {renderDepartmentsTab()}
+  1695→                    </TabsContent>
+  1696→                    <TabsContent value="gallery">
+  1697→                      {renderGalleryTab()}
+  1698→                    </TabsContent>
+  1699→                    <TabsContent value="archive">
+  1700→                      {renderArchiveTab()}
+  1701→                    </TabsContent>
+  1702→                    <TabsContent value="contact">
+  1703→                      {renderContactTab()}
+  1704→                    </TabsContent>
+  1705→                  </div>
+  1706→                </Tabs>
+  1707→              </div>
+  1708→            </div>
+  1709→          )}
+  1710→        </SheetContent>
+  1711→      </Sheet>
+  1712→    </>
+  1713→  );
+  1714→}
+  1715→
+  1716→/* ============================
+  1717→   SUB-COMPONENTS
+  1718→   ============================ */
+  1719→
+  1720→function SettingsField({
+  1721→  label,
+  1722→  value,
+  1723→  onChange,
+  1724→  multiline = false,
+  1725→}: {
+  1726→  label: string;
+  1727→  value: string;
+  1728→  onChange: (v: string) => void;
+  1729→  multiline?: boolean;
+  1730→}) {
+  1731→  return (
+  1732→    <div className="space-y-1.5">
+  1733→      <Label className="text-xs text-gray-500 dark:text-gray-400">{label}</Label>
+  1734→      {multiline ? (
+  1735→        <Textarea
+  1736→          value={value}
+  1737→          onChange={(e) => onChange(e.target.value)}
+  1738→          rows={3}
+  1739→          className="resize-none"
+  1740→        />
+  1741→      ) : (
+  1742→        <Input value={value} onChange={(e) => onChange(e.target.value)} />
+  1743→      )}
+  1744→    </div>
+  1745→  );
+  1746→}
+  1747→
+  1748→function LoadingSpinner() {
+  1749→  return (
+  1750→    <div className="flex items-center justify-center py-12">
+  1751→      <div className="flex flex-col items-center gap-3">
+  1752→        <Loader2 className="w-8 h-8 text-teal-600 animate-spin" />
+  1753→        <p className="text-sm text-gray-500">بارکردن...</p>
+  1754→      </div>
+  1755→    </div>
+  1756→  );
+  1757→}
+  1758→

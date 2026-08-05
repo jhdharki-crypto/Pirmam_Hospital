@@ -151,14 +151,10 @@ export function AdminPanel() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  /* File input refs */
-  const deptFileRef = useRef<HTMLInputElement>(null);
-  const galFileRef = useRef<HTMLInputElement>(null);
-  const arcFileRef = useRef<HTMLInputElement>(null);
-  const [uploadTarget, setUploadTarget] = useState<{
-    type: "department" | "gallery" | "archive";
-    index: number;
-  } | null>(null);
+  /* File input ref maps - each item gets its own input so uploads go to the right place */
+  const deptFileRefs = useRef<Record<number, HTMLInputElement | null>>({});
+  const galFileRefs = useRef<Record<number, HTMLInputElement | null>>({});
+  const arcFileRefs = useRef<Record<number, HTMLInputElement | null>>({});
 
   /* ============================
      PASSWORD & AUTH
@@ -500,20 +496,52 @@ export function AdminPanel() {
       if (res.ok) {
         const data = await res.json();
         const url = data.url;
+
+        /* Update local state first for instant preview */
         if (type === "department") {
+          const item = departments[index];
           setDepartments((prev) =>
             prev.map((d, i) => (i === index ? { ...d, image: url } : d))
           );
+          /* Auto-save to database so image persists */
+          if (item && !item.id.startsWith("new-")) {
+            await fetch("/api/admin/departments", {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ ...item, image: url }),
+            });
+          }
         } else if (type === "gallery") {
+          const item = galleryItems[index];
           setGalleryItems((prev) =>
             prev.map((g, i) => (i === index ? { ...g, image: url } : g))
           );
+          /* Auto-save to database */
+          if (item && !item.id.startsWith("new-")) {
+            await fetch("/api/admin/gallery", {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ ...item, image: url }),
+            });
+          }
         } else {
+          const item = archiveItems[index];
           setArchiveItems((prev) =>
             prev.map((a, i) => (i === index ? { ...a, image: url } : a))
           );
+          /* Auto-save to database */
+          if (item && !item.id.startsWith("new-")) {
+            await fetch("/api/admin/archive", {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ ...item, image: url }),
+            });
+          }
         }
-        toast.success("وێنەکە بارکرا");
+
+        /* Refresh public-facing site content */
+        await refetch();
+        toast.success("وێنەکە بارکرا و تۆمارکرا");
       } else {
         toast.error("هەڵەیەک ڕوویدا لە بارکردنی وێنە");
       }
@@ -526,44 +554,47 @@ export function AdminPanel() {
   }
 
   function triggerUpload(type: "department" | "gallery" | "archive", index: number) {
-    setUploadTarget({ type, index });
+    /* Use a short timeout to ensure the file input is mounted before clicking */
     setTimeout(() => {
-      if (type === "department") deptFileRef.current?.click();
-      else if (type === "gallery") galFileRef.current?.click();
-      else arcFileRef.current?.click();
+      const refMap =
+        type === "department"
+          ? deptFileRefs
+          : type === "gallery"
+            ? galFileRefs
+            : arcFileRefs;
+      refMap.current[index]?.click();
     }, 50);
   }
 
-  /* Hidden file inputs */
+  /* Hidden file input - each item gets its own unique input element
+     so that clicking upload on item #1 always uploads to item #1 */
+  function getRefCallback(
+    type: "department" | "gallery" | "archive",
+    index: number
+  ) {
+    const refMap =
+      type === "department"
+        ? deptFileRefs
+        : type === "gallery"
+          ? galFileRefs
+          : arcFileRefs;
+    return (el: HTMLInputElement | null) => {
+      refMap.current[index] = el;
+    };
+  }
+
   const hiddenFileInput = (
     type: "department" | "gallery" | "archive",
     index: number
   ) => {
-    if (type === "department") return (
-      <input
-        ref={deptFileRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={(e) => handleImageUpload(e, "department", index)}
-      />
-    );
-    if (type === "gallery") return (
-      <input
-        ref={galFileRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={(e) => handleImageUpload(e, "gallery", index)}
-      />
-    );
     return (
       <input
-        ref={arcFileRef}
+        key={`${type}-${index}`}
+        ref={getRefCallback(type, index)}
         type="file"
         accept="image/*"
         className="hidden"
-        onChange={(e) => handleImageUpload(e, "archive", index)}
+        onChange={(e) => handleImageUpload(e, type, index)}
       />
     );
   };

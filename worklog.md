@@ -93,3 +93,23 @@ Stage Summary:
 - All website content is now editable through the admin panel
 - Database is seeded with current content
 - Zero lint errors
+
+---
+Task ID: upload-fix
+Agent: main
+Task: Fix image upload going to wrong item in admin panel
+
+Work Log:
+- Identified root cause: All gallery items shared a single file input ref (galFileRef), causing uploads to always attach to the last rendered item
+- Replaced single shared refs (deptFileRef, galFileRef, arcFileRef) with ref maps (deptFileRefs, galFileRefs, arcFileRefs) using Record<number, HTMLInputElement>
+- Created getRefCallback() function that assigns each item its own unique file input via ref callback
+- Added key={`${type}-${index}`} to each file input for React identity
+- Added auto-save: images now persist to database immediately after upload (no need to click Save)
+- Added refetch() after upload so the public-facing site updates instantly
+- Verified in browser: upload to item #1 goes to #1, upload to item #2 goes to #2, item #3 unchanged
+- Cleaned up test data
+
+Stage Summary:
+- Each upload button now correctly targets its own item's file input
+- Images auto-save to database and refresh the public site immediately
+- Fix applies to all three sections: departments, gallery, and archive
