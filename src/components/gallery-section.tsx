@@ -1,6 +1,6 @@
 /* =============================================
    Pirmam Hospital - Gallery Section
-   Photo gallery showcasing hospital facilities and events
+   Photo gallery - content loaded from database via content store
    ============================================= */
 
 "use client";
@@ -9,62 +9,14 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ZoomIn } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
-/* =============================================
-   GALLERY IMAGES CONFIGURATION
-   EDIT: Replace the items below with your actual images
-   Each item has:
-   - src: Path to the image file (place images in /public/gallery/)
-   - alt: Kurdish description shown as alt text and caption
-   - title: Short title for the image
-   ============================================= */
-const galleryImages = [
-  {
-    src: "/gallery/placeholder-1.jpg",
-    alt: "دەرەوەی نەخۆشخانەی پیرمام",
-    title: "دەرەوەی نەخۆشخانە",
-    /* color: placeholder gradient color until real images are added */
-    color: "from-teal-600/80 to-emerald-700/80",
-  },
-  {
-    src: "/gallery/placeholder-2.jpg",
-    alt: "سەردانی نەخۆشان لە نەخۆشخانە",
-    title: "سەردانی نەخۆشان",
-    color: "from-emerald-600/80 to-teal-700/80",
-  },
-  {
-    src: "/gallery/placeholder-3.jpg",
-    alt: "تاقیگەی پێشکەوتووی نەخۆشخانە",
-    title: "تاقیگەی پێشکەوتوو",
-    color: "from-cyan-600/80 to-teal-700/80",
-  },
-  {
-    src: "/gallery/placeholder-4.jpg",
-    alt: "ئۆپەراسیۆنخانەی نەخۆشخانەی پیرمام",
-    title: "ئۆپەراسیۆنخانە",
-    color: "from-teal-700/80 to-cyan-600/80",
-  },
-  {
-    src: "/gallery/placeholder-5.jpg",
-    alt: "مەکینەی پشکنینی مەڕگە",
-    title: "پشکنینی مەڕگە",
-    color: "from-emerald-700/80 to-teal-600/80",
-  },
-  {
-    src: "/gallery/placeholder-6.jpg",
-    alt: "هۆڵی وەرگرتنی نەخۆشخانە",
-    title: "هۆڵی وەرگرتن",
-    color: "from-cyan-700/80 to-emerald-600/80",
-  },
-];
-
-/* Section title and description */
-const sectionTitle = "گەلەری وێنە";
-const sectionDescription = "وێنەیەکانی نەخۆشخانەی پیرمام - بینینی نزیک لە فەزا و کەرەستەکانی نەخۆشخانە";
+import { useContent } from "@/lib/content-store";
 
 export function GallerySection() {
-  /* State for the lightbox modal */
+  const { galleryItems, getSetting } = useContent();
   const [selectedImage, setSelectedImage] = useState<number | null>(null);
+
+  const sectionTitle = getSetting("gallerySectionTitle");
+  const sectionDescription = getSetting("gallerySectionDesc");
 
   return (
     <section id="gallery" className="relative py-20 sm:py-28 bg-muted/30">
@@ -90,9 +42,9 @@ export function GallerySection() {
 
         {/* === GALLERY GRID === */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          {galleryImages.map((image, index) => (
+          {galleryItems.map((image, index) => (
             <motion.div
-              key={index}
+              key={image.id}
               initial={{ opacity: 0, scale: 0.95 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true, margin: "-50px" }}
@@ -100,16 +52,19 @@ export function GallerySection() {
               className="group relative aspect-[4/3] rounded-2xl overflow-hidden cursor-pointer"
               onClick={() => setSelectedImage(index)}
             >
-              {/* 
-                Placeholder gradient background.
-                EDIT: Replace this div with an actual <Image> component:
-                <Image src={image.src} alt={image.alt} fill className="object-cover" />
-              */}
-              <div className={`absolute inset-0 bg-gradient-to-br ${image.color} flex items-center justify-center`}>
-                <span className="text-white/60 text-sm font-medium">{image.title}</span>
-              </div>
+              {image.image ? (
+                <img
+                  src={image.image}
+                  alt={image.title}
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+              ) : (
+                <div className={`absolute inset-0 bg-gradient-to-br ${image.color} flex items-center justify-center`}>
+                  <span className="text-white/60 text-sm font-medium">{image.title}</span>
+                </div>
+              )}
 
-              {/* Hover overlay with zoom icon */}
+              {/* Hover overlay */}
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-300 flex items-center justify-center">
                 <div className="opacity-0 group-hover:opacity-100 transition-opacity transform group-hover:scale-100 scale-75">
                   <div className="w-12 h-12 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
@@ -118,7 +73,7 @@ export function GallerySection() {
                 </div>
               </div>
 
-              {/* Title overlay at bottom */}
+              {/* Title overlay */}
               <div className="absolute bottom-0 inset-x-0 p-3 sm:p-4 bg-gradient-to-t from-black/60 to-transparent">
                 <p className="text-white text-xs sm:text-sm font-medium">
                   {image.title}
@@ -131,7 +86,7 @@ export function GallerySection() {
 
       {/* === LIGHTBOX MODAL === */}
       <AnimatePresence>
-        {selectedImage !== null && (
+        {selectedImage !== null && galleryItems[selectedImage] && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -156,17 +111,21 @@ export function GallerySection() {
               className="max-w-4xl w-full"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* 
-                Lightbox image display.
-                EDIT: Replace this div with an actual <Image> component
-              */}
-              <div className={`aspect-video rounded-2xl overflow-hidden bg-gradient-to-br ${galleryImages[selectedImage].color} flex items-center justify-center`}>
-                <span className="text-white/60 text-lg font-medium">
-                  {galleryImages[selectedImage].title}
-                </span>
-              </div>
+              {galleryItems[selectedImage].image ? (
+                <img
+                  src={galleryItems[selectedImage].image!}
+                  alt={galleryItems[selectedImage].title}
+                  className="aspect-video w-full rounded-2xl object-cover"
+                />
+              ) : (
+                <div className={`aspect-video rounded-2xl overflow-hidden bg-gradient-to-br ${galleryItems[selectedImage].color} flex items-center justify-center`}>
+                  <span className="text-white/60 text-lg font-medium">
+                    {galleryItems[selectedImage].title}
+                  </span>
+                </div>
+              )}
               <p className="text-white/70 text-sm mt-4 text-center">
-                {galleryImages[selectedImage].alt}
+                {galleryItems[selectedImage].description || galleryItems[selectedImage].title}
               </p>
             </motion.div>
           </motion.div>

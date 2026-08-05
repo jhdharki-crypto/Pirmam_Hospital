@@ -1,6 +1,7 @@
 /* =============================================
    Pirmam Hospital - Archive Section
-   Archive of events, achievements, and news with images and descriptions
+   Archive of events, achievements, and news
+   Content loaded from database via content store
    ============================================= */
 
 "use client";
@@ -15,75 +16,24 @@ import {
   Newspaper,
   GraduationCap,
   Building2,
+  type LucideIcon,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useContent } from "@/lib/content-store";
 
-/* =============================================
-   ARCHIVE ITEMS CONFIGURATION
-   EDIT: Add, remove, or modify archive items below
-   Each item has:
-   - id: Unique identifier
-   - date: Date string shown in Kurdish
-   - category: Type of archive item (event, achievement, news)
-   - title: Title in Kurdish
-   - description: Full description in Kurdish (can be long)
-   - image: Placeholder color gradient until real images added
-   - icon: Icon component for the category
-   ============================================= */
-const archiveItems = [
-  {
-    id: 1,
-    date: "٢٠٢٥/٠١/١٥",
-    category: "تۆمار",
-    categoryIcon: Award,
-    title: "نەخۆشخانەی پیرمام خەڵاتی باشترین نەخۆشخانەی کوردستانی وەرگرت",
-    description:
-      "لە ئاهەنگی ساڵانەی تەندروستی کوردستان، نەخۆشخانەی پیرمام خەڵاتی باشترین نەخۆشخانەی ساڵی وەرگرت. ئەم خەڵاتە بەهۆی خزمەتگوزاری بێنظیری تەندروستی و تیمی شارەزای پزیشکی دابەنرا. ئێمە بە شانازییەوە ئەم سەرکەوتنە پێشکەشی خەڵکی کوردستان دەکەین.",
-    image: "from-amber-600/70 to-orange-700/70",
-  },
-  {
-    id: 2,
-    date: "٢٠٢٤/١٢/٠١",
-    category: "بۆنیانە",
-    categoryIcon: Newspaper,
-    title: "کەمپەینی تەندروستی بەخۆڕایی بۆ هاوڵاتیان",
-    description:
-      "نەخۆشخانەی پیرمام کەمپەینێکی تەندروستی بەخۆڕایی بۆ هاوڵاتیان ئەنجام دا. لەم کەمپەینەدا پشکنینی تەواوی تەندروستی بە بێبەها بۆ زیاتر لە ١٠٠٠ هاوڵاتی ئەنجامدرا. ئەم چالاکییە بەشێک بوو لە ئەرکی کۆمەڵایەتی نەخۆشخانەکە بۆ کۆمەڵگا.",
-    image: "from-emerald-600/70 to-teal-700/70",
-  },
-  {
-    id: 3,
-    date: "٢٠٢٤/١٠/٢٠",
-    category: "فێربوون",
-    categoryIcon: GraduationCap,
-    title: "سمیناری نێودەوڵەتی پزیشکی لە نەخۆشخانەی پیرمام",
-    description:
-      "سمینارێکی نێودەوڵەتی لە بوارەکانی پزیشکی سەرەتایی و نەشتەرگەری لە نەخۆشخانەی پیرمام بەڕێوەچوو. زیاتر لە ٥٠ پزیشکی شارەزا لە وڵاتانی جیاواز بەشداریان کرد. سمینارەکە لەلایەن مامۆستایان و پسپۆڕانی نێودەوڵەتیەوە ئەنجامدرا.",
-    image: "from-cyan-600/70 to-blue-700/70",
-  },
-  {
-    id: 4,
-    date: "٢٠٢٤/٠٨/٠٥",
-    category: "تۆمار",
-    categoryIcon: Building2,
-    title: "کراندنەوەی باڵەخانەی نوێی نەخۆشخانە",
-    description:
-      "باڵەخانەی نوێی نەخۆشخانەی پیرمام کە لەگەڵ کەرەستەی پێشکەوتووی تەندروستی ئامادەکراوە، بە فەرمی کرایەوە. ئەم باڵەخانەیە لەگەڵ ١٢٠ جێی نەخۆش و ٤ ژووری نەشتەرگەری و تاقیگەی پێشکەوتوو خزمەتگوزاری تەندروستی باشتر پێشکەش دەکات.",
-    image: "from-teal-600/70 to-emerald-700/70",
-  },
-];
-
-/* Section title and description */
-const sectionTitle = "ئەرشیف";
-const sectionDescription = "بەرنامە، تۆمارەکان و بۆنیانەکانی نەخۆشخانەی پیرمام";
+/* Category icon mapping */
+const categoryIconMap: Record<string, LucideIcon> = {
+  "تۆمار": Award,
+  "بۆنیانە": Newspaper,
+  "فێربوون": GraduationCap,
+};
 
 export function ArchiveSection() {
-  /* Track which archive items are expanded to show full description */
-  const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set());
+  const { archiveItems, getSetting } = useContent();
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
 
-  /* Toggle expand/collapse for an archive item */
-  const toggleExpand = (id: number) => {
+  const toggleExpand = (id: string) => {
     setExpandedIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) {
@@ -94,6 +44,9 @@ export function ArchiveSection() {
       return next;
     });
   };
+
+  const sectionTitle = getSetting("archiveSectionTitle");
+  const sectionDescription = getSetting("archiveSectionDesc");
 
   return (
     <section id="archive" className="relative py-20 sm:py-28">
@@ -121,7 +74,7 @@ export function ArchiveSection() {
         <div className="space-y-6">
           {archiveItems.map((item, index) => {
             const isExpanded = expandedIds.has(item.id);
-            const Icon = item.categoryIcon;
+            const Icon = categoryIconMap[item.category] || Building2;
 
             return (
               <motion.article
@@ -133,22 +86,31 @@ export function ArchiveSection() {
                 className="glass rounded-2xl overflow-hidden group"
               >
                 <div className="flex flex-col sm:flex-row">
-                  {/* Image placeholder
-                      EDIT: Replace this div with an actual <Image> component:
-                      <Image src={item.imageSrc} alt={item.title} width={200} height={200} className="object-cover" /> */}
-                  <div
-                    className={`sm:w-48 md:w-56 aspect-video sm:aspect-auto bg-gradient-to-br ${item.image} flex-shrink-0 flex items-center justify-center relative`}
-                  >
-                    <Icon className="w-10 h-10 text-white/40" />
-                    {/* Category badge on the image */}
-                    <Badge className="absolute top-3 right-3 bg-white/20 text-white border-0 backdrop-blur-sm text-xs">
-                      {item.category}
-                    </Badge>
-                  </div>
+                  {/* Image or color placeholder */}
+                  {item.image ? (
+                    <div className="sm:w-48 md:w-56 aspect-video sm:aspect-auto flex-shrink-0 relative overflow-hidden">
+                      <img
+                        src={item.image}
+                        alt={item.title}
+                        className="w-full h-full object-cover"
+                      />
+                      <Badge className="absolute top-3 right-3 bg-white/20 text-white border-0 backdrop-blur-sm text-xs">
+                        {item.category}
+                      </Badge>
+                    </div>
+                  ) : (
+                    <div
+                      className={`sm:w-48 md:w-56 aspect-video sm:aspect-auto bg-gradient-to-br ${item.color} flex-shrink-0 flex items-center justify-center relative`}
+                    >
+                      <Icon className="w-10 h-10 text-white/40" />
+                      <Badge className="absolute top-3 right-3 bg-white/20 text-white border-0 backdrop-blur-sm text-xs">
+                        {item.category}
+                      </Badge>
+                    </div>
+                  )}
 
                   {/* Content area */}
                   <div className="flex-1 p-4 sm:p-6">
-                    {/* Date and title */}
                     <div className="flex items-center gap-2 mb-2">
                       <Calendar className="w-3.5 h-3.5 text-primary" />
                       <span className="text-xs text-muted-foreground">{item.date}</span>
@@ -158,7 +120,6 @@ export function ArchiveSection() {
                       {item.title}
                     </h3>
 
-                    {/* Description with expand/collapse */}
                     <div className="relative">
                       <p
                         className={`text-xs sm:text-sm text-muted-foreground leading-relaxed ${
@@ -168,7 +129,6 @@ export function ArchiveSection() {
                         {item.description}
                       </p>
 
-                      {/* Expand/collapse button */}
                       <Button
                         variant="ghost"
                         size="sm"

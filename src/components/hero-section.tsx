@@ -12,27 +12,7 @@ import {
   Clock,
   Users,
 } from "lucide-react";
-
-/* =============================================
-   HERO CONTENT CONFIGURATION
-   EDIT: Change the text, descriptions, and stats below
-   ============================================= */
-
-/* Main heading text */
-const heroTitle = "نەخۆشخانەی پیرمام";
-/* Subtitle / tagline */
-const heroSubtitle = "خزمەتگوزاری تەندروستی بەرز و متمانەپێکراو";
-/* Main description paragraph */
-const heroDescription =
-  "ئێمە لە نەخۆشخانەی پیرمام بە پێشەنگی تەکنەلۆژیا و تیمی پزیشکی شارەزا، باشترین خزمەتگوزاری تەندروستی پێشکەش بۆ خەڵکی کوردستان دەکەین. تەندروستی خەڵک ئەولویەتی ئێمەیە.";
-
-/* Quick stats shown below the hero text */
-const heroStats = [
-  { icon: Users, value: "٢٠٠+", label: "پزیشکی شارەزا" },       // 200+ Expert Doctors
-  { icon: HeartPulse, value: "٥٠٠٠٠+", label: "نەخۆشی سەردەم" },  // 50000+ Patients Treated
-  { icon: ShieldCheck, value: "٢٤/٧", label: "خزمەتگوزاری" },      // 24/7 Service
-  { icon: Clock, value: "١٥+", label: "ساڵ ئەزموون" },          // 15+ Years Experience
-];
+import { useContent } from "@/lib/content-store";
 
 /* Animation variants */
 const containerVariants = {
@@ -48,22 +28,34 @@ const itemVariants = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } },
 };
 
+/* Icon mapping for stats */
+const statIcons = [Users, HeartPulse, ShieldCheck, Clock];
+
 export function HeroSection() {
+  const { getSetting } = useContent();
+
+  const heroTitle = getSetting("heroTitle");
+  const heroSubtitle = getSetting("heroSubtitle");
+  const heroDescription = getSetting("heroDescription");
+  const heroBadge = getSetting("heroBadge");
+
+  const heroStats = [
+    { icon: statIcons[0], value: getSetting("stat1Value"), label: getSetting("stat1Label") },
+    { icon: statIcons[1], value: getSetting("stat2Value"), label: getSetting("stat2Label") },
+    { icon: statIcons[2], value: getSetting("stat3Value"), label: getSetting("stat3Label") },
+    { icon: statIcons[3], value: getSetting("stat4Value"), label: getSetting("stat4Label") },
+  ];
+
   return (
     <section
       id="home"
       className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20"
     >
-      {/* === ANIMATED BACKGROUND EFFECTS === 
-          Creates floating medical-themed gradient orbs */}
+      {/* === ANIMATED BACKGROUND EFFECTS === */}
       <div className="absolute inset-0 pointer-events-none">
-        {/* Large gradient orb - top right */}
         <div className="absolute -top-32 -left-32 w-96 h-96 bg-gradient-to-br from-primary/20 to-medical-dark/10 rounded-full blur-3xl animate-pulse-glow" />
-        {/* Medium gradient orb - bottom left */}
         <div className="absolute -bottom-20 -right-20 w-72 h-72 bg-gradient-to-tr from-medical/15 to-primary/5 rounded-full blur-3xl animate-pulse-glow" style={{ animationDelay: "1.5s" }} />
-        {/* Small accent orb - center */}
         <div className="absolute top-1/3 right-1/4 w-48 h-48 bg-gradient-to-bl from-medical-glow/10 to-transparent rounded-full blur-2xl animate-float" />
-        {/* Grid pattern overlay for medical/tech feel */}
         <div
           className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05]"
           style={{
@@ -80,11 +72,11 @@ export function HeroSection() {
         animate="visible"
         className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 text-center"
       >
-        {/* Hospital badge/tag */}
+        {/* Hospital badge */}
         <motion.div variants={itemVariants} className="mb-6">
           <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs sm:text-sm font-medium bg-primary/10 text-primary border border-primary/20">
             <HeartPulse className="w-3.5 h-3.5" />
-            خزمەتگوزاری تەندروستی لە کوردستان
+            {heroBadge}
           </span>
         </motion.div>
 
@@ -106,7 +98,7 @@ export function HeroSection() {
           {heroSubtitle}
         </motion.p>
 
-        {/* Description paragraph */}
+        {/* Description */}
         <motion.p
           variants={itemVariants}
           className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-2xl mx-auto mb-10 sm:mb-12 leading-relaxed"
@@ -136,8 +128,7 @@ export function HeroSection() {
         </motion.div>
       </motion.div>
 
-      {/* === BOTTOM FADE EFFECT === 
-          Smooth transition into the next section */}
+      {/* Bottom fade */}
       <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent" />
     </section>
   );

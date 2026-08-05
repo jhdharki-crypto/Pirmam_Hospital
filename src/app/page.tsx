@@ -40,6 +40,7 @@ import { DepartmentsSection } from "@/components/departments-section";
 import { GallerySection } from "@/components/gallery-section";
 import { ArchiveSection } from "@/components/archive-section";
 import { Footer } from "@/components/footer";
+import { AdminPanel } from "@/components/admin-panel";
 
 export default function Home() {
   return (
@@ -70,6 +71,9 @@ export default function Home() {
 
       {/* Footer with contact info, social media, developer credit */}
       <Footer />
+
+      {/* Admin Panel - floating button and content editor */}
+      <AdminPanel />
     </div>
   );
 }
