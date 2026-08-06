@@ -1,243 +1,280 @@
 /* =============================================
-   Pirmam Hospital - Premium Animated Background
-   Multi-layered: gradient orbs, dot grid, light rays, pulse elements
-   Designed to impress — inspired by Stripe/Linear/Vercel aesthetics
+   Pirmam Hospital - Premium Static Background
+   Beautiful gradient mesh with medical SVG watermarks
+   Zero animation — pure visual impact through composition
    ============================================= */
 
 "use client";
 
+import { useTheme } from "next-themes";
+
 export function MedicalBackground() {
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
+
   return (
     <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none" aria-hidden="true">
 
-      {/* ====== LAYER 1: Animated Gradient Orbs ====== */}
-      {/* Large soft blurred color circles that slowly drift around */}
+      {/* ====== LAYER 1: Gradient Mesh ====== */}
+      {/* Overlapping radial gradients that create a beautiful mesh effect */}
+      <div className="absolute inset-0" style={{
+        background: isDark
+          ? `
+            radial-gradient(ellipse 80% 60% at 15% 10%, oklch(0.30 0.10 172 / 0.25) 0%, transparent 70%),
+            radial-gradient(ellipse 70% 50% at 85% 15%, oklch(0.28 0.08 165 / 0.20) 0%, transparent 60%),
+            radial-gradient(ellipse 60% 80% at 50% 50%, oklch(0.25 0.06 172 / 0.12) 0%, transparent 70%),
+            radial-gradient(ellipse 90% 60% at 80% 80%, oklch(0.22 0.09 178 / 0.18) 0%, transparent 65%),
+            radial-gradient(ellipse 50% 40% at 10% 85%, oklch(0.32 0.11 160 / 0.15) 0%, transparent 60%),
+            radial-gradient(ellipse 40% 50% at 60% 30%, oklch(0.26 0.07 175 / 0.10) 0%, transparent 55%)
+          `
+          : `
+            radial-gradient(ellipse 80% 60% at 15% 10%, oklch(0.82 0.06 172 / 0.30) 0%, transparent 70%),
+            radial-gradient(ellipse 70% 50% at 85% 15%, oklch(0.85 0.05 165 / 0.25) 0%, transparent 60%),
+            radial-gradient(ellipse 60% 80% at 50% 50%, oklch(0.88 0.04 172 / 0.18) 0%, transparent 70%),
+            radial-gradient(ellipse 90% 60% at 80% 80%, oklch(0.80 0.07 178 / 0.22) 0%, transparent 65%),
+            radial-gradient(ellipse 50% 40% at 10% 85%, oklch(0.78 0.06 160 / 0.20) 0%, transparent 60%),
+            radial-gradient(ellipse 40% 50% at 60% 30%, oklch(0.90 0.03 175 / 0.15) 0%, transparent 55%)
+          `
+      }} />
 
-      {/* Primary teal orb - top right */}
+      {/* ====== LAYER 2: Dot Grid Pattern ====== */}
       <div
-        className="absolute w-[600px] h-[600px] rounded-full opacity-[0.12] dark:opacity-[0.15]"
+        className="absolute inset-0"
         style={{
-          top: "-10%",
-          right: "-8%",
-          background: "radial-gradient(circle, oklch(0.65 0.14 172 / 0.6) 0%, oklch(0.65 0.14 172 / 0) 70%)",
-          filter: "blur(80px)",
-          willChange: "transform",
-          animation: "orb-drift-1 25s ease-in-out infinite",
+          backgroundImage: isDark
+            ? "radial-gradient(circle, oklch(0.45 0.06 172 / 0.25) 1px, transparent 1px)"
+            : "radial-gradient(circle, oklch(0.55 0.06 172 / 0.18) 1px, transparent 1px)",
+          backgroundSize: "48px 48px",
+          maskImage: "radial-gradient(ellipse 85% 70% at 50% 50%, black 20%, transparent 80%)",
+          WebkitMaskImage: "radial-gradient(ellipse 85% 70% at 50% 50%, black 20%, transparent 80%)",
         }}
       />
 
-      {/* Secondary emerald orb - bottom left */}
-      <div
-        className="absolute w-[500px] h-[500px] rounded-full opacity-[0.10] dark:opacity-[0.13]"
-        style={{
-          bottom: "-5%",
-          left: "-5%",
-          background: "radial-gradient(circle, oklch(0.60 0.12 160 / 0.5) 0%, oklch(0.60 0.12 160 / 0) 70%)",
-          filter: "blur(70px)",
-          willChange: "transform",
-          animation: "orb-drift-2 30s ease-in-out infinite",
-        }}
-      />
+      {/* ====== LAYER 3: Medical SVG Watermarks ====== */}
+      {/* Static decorative medical elements placed artistically around the edges */}
 
-      {/* Tertiary glow orb - center */}
-      <div
-        className="absolute w-[400px] h-[400px] rounded-full opacity-[0.06] dark:opacity-[0.10]"
-        style={{
-          top: "35%",
-          left: "40%",
-          background: "radial-gradient(circle, oklch(0.70 0.15 172 / 0.4) 0%, oklch(0.70 0.15 172 / 0) 70%)",
-          filter: "blur(90px)",
-          willChange: "transform",
-          animation: "orb-drift-3 35s ease-in-out infinite",
-        }}
-      />
-
-      {/* Small accent orb - top left */}
-      <div
-        className="absolute w-[300px] h-[300px] rounded-full opacity-[0.08] dark:opacity-[0.10]"
-        style={{
-          top: "5%",
-          left: "15%",
-          background: "radial-gradient(circle, oklch(0.55 0.16 180 / 0.4) 0%, oklch(0.55 0.16 180 / 0) 70%)",
-          filter: "blur(60px)",
-          willChange: "transform",
-          animation: "orb-drift-4 28s ease-in-out infinite 5s",
-        }}
-      />
-
-      {/* Small warm accent orb - bottom right */}
-      <div
-        className="absolute w-[350px] h-[350px] rounded-full opacity-[0.05] dark:opacity-[0.07]"
-        style={{
-          bottom: "15%",
-          right: "10%",
-          background: "radial-gradient(circle, oklch(0.72 0.12 165 / 0.3) 0%, oklch(0.72 0.12 165 / 0) 70%)",
-          filter: "blur(80px)",
-          willChange: "transform",
-          animation: "orb-drift-5 32s ease-in-out infinite 8s",
-        }}
-      />
-
-      {/* ====== LAYER 2: Subtle Dot Grid Pattern ====== */}
-      <div
-        className="absolute inset-0 opacity-[0.3] dark:opacity-[0.15]"
-        style={{
-          backgroundImage: "radial-gradient(circle, oklch(0.50 0.08 172 / 0.5) 1px, transparent 1px)",
-          backgroundSize: "40px 40px",
-          maskImage: "radial-gradient(ellipse 80% 60% at 50% 50%, black 30%, transparent 100%)",
-          WebkitMaskImage: "radial-gradient(ellipse 80% 60% at 50% 50%, black 30%, transparent 100%)",
-        }}
-      />
-
-      {/* ====== LAYER 3: Animated Light Rays ====== */}
-      {/* Sweeping diagonal light beams */}
-
-      <div
-        className="absolute inset-0 overflow-hidden"
-        style={{ opacity: "0.04", willChange: "transform", animation: "light-sweep 20s ease-in-out infinite" }}
-      >
-        <div
-          className="absolute w-[200%] h-[2px] origin-left"
-          style={{
-            top: "25%",
-            left: "-20%",
-            background: "linear-gradient(90deg, transparent 0%, oklch(0.65 0.14 172 / 0.8) 30%, transparent 60%)",
-            transform: "rotate(-15deg)",
-          }}
-        />
-      </div>
-
-      <div
-        className="absolute inset-0 overflow-hidden"
-        style={{ opacity: "0.03", willChange: "transform", animation: "light-sweep 25s ease-in-out infinite 7s" }}
-      >
-        <div
-          className="absolute w-[200%] h-[2px] origin-left"
-          style={{
-            top: "60%",
-            left: "-20%",
-            background: "linear-gradient(90deg, transparent 0%, oklch(0.60 0.12 160 / 0.8) 30%, transparent 60%)",
-            transform: "rotate(-10deg)",
-          }}
-        />
-      </div>
-
-      <div
-        className="absolute inset-0 overflow-hidden"
-        style={{ opacity: "0.035", willChange: "transform", animation: "light-sweep-reverse 22s ease-in-out infinite 3s" }}
-      >
-        <div
-          className="absolute w-[200%] h-[2px] origin-left"
-          style={{
-            top: "45%",
-            left: "-20%",
-            background: "linear-gradient(90deg, transparent 0%, oklch(0.68 0.15 172 / 0.7) 25%, transparent 55%)",
-            transform: "rotate(-20deg)",
-          }}
-        />
-      </div>
-
-      {/* ====== LAYER 4: Pulsing Medical Signature ====== */}
-      {/* A subtle pulsing DNA/double helix pattern - very faint */}
-
+      {/* DNA Double Helix - top right corner */}
       <svg
-        className="absolute top-[10%] right-[6%] w-40 opacity-[0.06] dark:opacity-[0.09]"
-        viewBox="0 0 100 200"
+        className="absolute top-[4%] right-[3%] w-44 opacity-[0.05] dark:opacity-[0.08]"
+        viewBox="0 0 100 220"
         fill="none"
-        style={{ willChange: "transform, opacity", animation: "dna-rotate 20s linear infinite" }}
       >
-        <path d="M30 0 Q70 25 30 50 Q-10 75 30 100 Q70 125 30 150 Q-10 175 30 200" stroke="currentColor" strokeWidth="1.5" className="text-primary" />
-        <path d="M70 0 Q30 25 70 50 Q110 75 70 100 Q30 125 70 150 Q110 175 70 200" stroke="currentColor" strokeWidth="1.5" className="text-primary" />
-        {/* Connecting rungs */}
-        {[10, 30, 50, 70, 90, 110, 130, 150, 170, 190].map((y, i) => {
-          const x1 = i % 2 === 0 ? 35 : 65;
-          const x2 = i % 2 === 0 ? 65 : 35;
+        <path
+          d="M25 0 Q65 28 25 55 Q-15 82 25 110 Q65 138 25 165 Q-15 192 25 220"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          className="text-primary"
+        />
+        <path
+          d="M75 0 Q35 28 75 55 Q115 82 75 110 Q35 138 75 165 Q115 192 75 220"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          className="text-primary"
+        />
+        {[15, 38, 60, 82, 105, 128, 150, 172, 195].map((y, i) => {
+          const x1 = i % 2 === 0 ? 32 : 68;
+          const x2 = i % 2 === 0 ? 68 : 32;
           return (
-            <line key={i} x1={x1} y1={y} x2={x2} y2={y} stroke="currentColor" strokeWidth="0.8" className="text-primary" opacity="0.4" />
+            <line key={i} x1={x1} y1={y} x2={x2} y2={y} stroke="currentColor" strokeWidth="0.8" className="text-primary" opacity="0.5" />
           );
         })}
       </svg>
 
-      {/* Pulsing medical cross - subtle signature */}
+      {/* Medical Cross - bottom right */}
       <svg
-        className="absolute bottom-[20%] right-[15%] w-16 h-16 opacity-[0.06] dark:opacity-[0.09]"
+        className="absolute bottom-[12%] right-[6%] w-20 h-20 opacity-[0.04] dark:opacity-[0.07]"
         viewBox="0 0 64 64"
         fill="none"
-        style={{ willChange: "transform, opacity", animation: "cross-pulse 6s ease-in-out infinite" }}
       >
-        <path d="M24 8 H40 V24 H56 V40 H40 V56 H24 V40 H8 V24 H24 Z" className="fill-primary" />
+        <path d="M24 6 H40 V24 H58 V40 H40 V58 H24 V40 H6 V24 H24 Z" className="fill-primary" />
       </svg>
 
-      {/* ECG heartbeat line - animated across */}
+      {/* Small Medical Cross - top left */}
       <svg
-        className="absolute bottom-[8%] left-[5%] w-[300px] sm:w-[500px] opacity-[0.08] dark:opacity-[0.12]"
+        className="absolute top-[8%] left-[5%] w-12 h-12 opacity-[0.04] dark:opacity-[0.06]"
+        viewBox="0 0 64 64"
+        fill="none"
+      >
+        <path d="M24 6 H40 V24 H58 V40 H40 V58 H24 V40 H6 V24 H24 Z" className="fill-primary" />
+      </svg>
+
+      {/* ECG Heartbeat Line - bottom left area */}
+      <svg
+        className="absolute bottom-[6%] left-[4%] w-[280px] sm:w-[420px] opacity-[0.06] dark:opacity-[0.09]"
         viewBox="0 0 500 60"
         fill="none"
-        style={{ willChange: "opacity" }}
       >
         <path
-          d="M0 30 L80 30 L100 30 L115 10 L125 50 L135 5 L145 55 L155 30 L180 30 L200 30 L220 25 L230 35 L250 20 L260 40 L280 28 L300 30 L500 30"
+          d="M0 30 L90 30 L110 30 L125 8 L135 52 L145 4 L155 56 L165 30 L190 30 L210 30 L230 24 L242 36 L260 18 L275 42 L295 27 L320 30 L500 30"
           stroke="currentColor"
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
           className="text-primary"
-          style={{
-            strokeDasharray: "800",
-            animation: "ecg-draw 6s linear infinite",
-          }}
         />
       </svg>
 
-      {/* Second ECG line - top */}
+      {/* Second ECG Line - top center */}
       <svg
-        className="absolute top-[6%] left-[30%] w-[200px] sm:w-[350px] opacity-[0.05] dark:opacity-[0.08]"
+        className="absolute top-[5%] left-[35%] w-[200px] sm:w-[320px] opacity-[0.04] dark:opacity-[0.06]"
         viewBox="0 0 500 60"
         fill="none"
       >
         <path
-          d="M0 30 L120 30 L140 30 L155 12 L165 48 L175 8 L185 52 L195 30 L220 30 L250 30 L270 22 L285 38 L300 25 L320 35 L350 30 L500 30"
+          d="M0 30 L130 30 L150 30 L165 14 L175 46 L185 9 L195 51 L205 30 L240 30 L270 30 L290 22 L305 38 L325 26 L340 36 L365 30 L500 30"
           stroke="currentColor"
           strokeWidth="1.5"
           strokeLinecap="round"
           strokeLinejoin="round"
           className="text-primary"
-          style={{
-            strokeDasharray: "700",
-            animation: "ecg-draw 8s linear infinite 2s",
-          }}
         />
       </svg>
 
-      {/* ====== LAYER 5: Floating Micro Particles ====== */}
-      {/* Tiny glowing dots that drift slowly */}
+      {/* Stethoscope shape - bottom center right */}
+      <svg
+        className="absolute bottom-[25%] right-[12%] w-16 opacity-[0.04] dark:opacity-[0.06]"
+        viewBox="0 0 64 80"
+        fill="none"
+      >
+        {/* Earpiece */}
+        <circle cx="16" cy="8" r="5" stroke="currentColor" strokeWidth="1.2" className="text-primary" />
+        <circle cx="48" cy="8" r="5" stroke="currentColor" strokeWidth="1.2" className="text-primary" />
+        {/* Tubing */}
+        <path d="M16 13 Q16 30 32 35 Q48 40 48 55" stroke="currentColor" strokeWidth="1.5" className="text-primary" />
+        {/* Chest piece */}
+        <circle cx="48" cy="62" r="8" stroke="currentColor" strokeWidth="1.2" className="text-primary" />
+        <circle cx="48" cy="62" r="3" className="fill-primary" opacity="0.3" />
+      </svg>
 
-      {/* Particle group 1 - top area */}
-      <div className="absolute top-[15%] left-[25%] w-1 h-1 rounded-full bg-primary/20 dark:bg-primary/30" style={{ animation: "particle-float 15s ease-in-out infinite" }} />
-      <div className="absolute top-[20%] left-[60%] w-1.5 h-1.5 rounded-full bg-primary/15 dark:bg-primary/25" style={{ animation: "particle-float 18s ease-in-out infinite 3s" }} />
-      <div className="absolute top-[30%] left-[45%] w-1 h-1 rounded-full bg-primary/20 dark:bg-primary/30" style={{ animation: "particle-float 20s ease-in-out infinite 7s" }} />
-      <div className="absolute top-[12%] left-[80%] w-1 h-1 rounded-full bg-primary/15 dark:bg-primary/20" style={{ animation: "particle-float 16s ease-in-out infinite 10s" }} />
+      {/* Heartbeat icon - middle left */}
+      <svg
+        className="absolute top-[40%] left-[2%] w-14 opacity-[0.04] dark:opacity-[0.06]"
+        viewBox="0 0 24 24"
+        fill="none"
+      >
+        <path
+          d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+          className="fill-primary"
+          opacity="0.6"
+        />
+      </svg>
 
-      {/* Particle group 2 - middle area */}
-      <div className="absolute top-[50%] left-[10%] w-1.5 h-1.5 rounded-full bg-primary/15 dark:bg-primary/25" style={{ animation: "particle-float 17s ease-in-out infinite 2s" }} />
-      <div className="absolute top-[55%] left-[75%] w-1 h-1 rounded-full bg-primary/20 dark:bg-primary/30" style={{ animation: "particle-float 22s ease-in-out infinite 5s" }} />
-      <div className="absolute top-[65%] left-[35%] w-1 h-1 rounded-full bg-primary/10 dark:bg-primary/20" style={{ animation: "particle-float 19s ease-in-out infinite 9s" }} />
-      <div className="absolute top-[45%] left-[90%] w-1.5 h-1.5 rounded-full bg-primary/15 dark:bg-primary/20" style={{ animation: "particle-float 21s ease-in-out infinite 12s" }} />
+      {/* Pill/Capsule shape - top center left */}
+      <svg
+        className="absolute top-[15%] left-[18%] w-10 opacity-[0.04] dark:opacity-[0.06]"
+        viewBox="0 0 40 20"
+        fill="none"
+      >
+        <rect x="2" y="2" width="36" height="16" rx="8" className="fill-primary" opacity="0.4" />
+        <line x1="20" y1="2" x2="20" y2="18" stroke="currentColor" strokeWidth="1" className="text-background" />
+      </svg>
 
-      {/* Particle group 3 - bottom area */}
-      <div className="absolute top-[75%] left-[20%] w-1 h-1 rounded-full bg-primary/15 dark:bg-primary/25" style={{ animation: "particle-float 16s ease-in-out infinite 4s" }} />
-      <div className="absolute top-[85%] left-[55%] w-1.5 h-1.5 rounded-full bg-primary/10 dark:bg-primary/20" style={{ animation: "particle-float 23s ease-in-out infinite 8s" }} />
-      <div className="absolute top-[80%] left-[85%] w-1 h-1 rounded-full bg-primary/15 dark:bg-primary/25" style={{ animation: "particle-float 18s ease-in-out infinite 1s" }} />
-      <div className="absolute top-[90%] left-[40%] w-1 h-1 rounded-full bg-primary/10 dark:bg-primary/15" style={{ animation: "particle-float 20s ease-in-out infinite 11s" }} />
+      {/* DNA Helix - bottom left corner (mirrored) */}
+      <svg
+        className="absolute bottom-[3%] left-[25%] w-32 opacity-[0.04] dark:opacity-[0.06]"
+        viewBox="0 0 100 180"
+        fill="none"
+      >
+        <path
+          d="M20 0 Q55 22 20 45 Q-15 68 20 90 Q55 112 20 135 Q-15 158 20 180"
+          stroke="currentColor"
+          strokeWidth="1.2"
+          className="text-primary"
+        />
+        <path
+          d="M80 0 Q45 22 80 45 Q115 68 80 90 Q45 112 80 135 Q115 158 80 180"
+          stroke="currentColor"
+          strokeWidth="1.2"
+          className="text-primary"
+        />
+        {[18, 40, 62, 85, 108, 130, 155].map((y, i) => {
+          const x1 = i % 2 === 0 ? 28 : 72;
+          const x2 = i % 2 === 0 ? 72 : 28;
+          return (
+            <line key={i} x1={x1} y1={y} x2={x2} y2={y} stroke="currentColor" strokeWidth="0.7" className="text-primary" opacity="0.4" />
+          );
+        })}
+      </svg>
 
-      {/* ====== LAYER 6: Vignette Edge Gradient ====== */}
-      {/* Subtle darkening at edges for depth */}
+      {/* Molecular/cell structure - right side middle */}
+      <svg
+        className="absolute top-[55%] right-[3%] w-24 opacity-[0.04] dark:opacity-[0.06]"
+        viewBox="0 0 100 100"
+        fill="none"
+      >
+        <circle cx="50" cy="50" r="12" stroke="currentColor" strokeWidth="1" className="text-primary" />
+        <circle cx="50" cy="50" r="5" className="fill-primary" opacity="0.2" />
+        {/* Connecting bonds */}
+        <circle cx="50" cy="18" r="6" stroke="currentColor" strokeWidth="0.8" className="text-primary" />
+        <circle cx="82" cy="68" r="6" stroke="currentColor" strokeWidth="0.8" className="text-primary" />
+        <circle cx="18" cy="68" r="6" stroke="currentColor" strokeWidth="0.8" className="text-primary" />
+        <line x1="50" y1="38" x2="50" y2="24" stroke="currentColor" strokeWidth="0.8" className="text-primary" />
+        <line x1="60" y1="56" x2="76" y2="64" stroke="currentColor" strokeWidth="0.8" className="text-primary" />
+        <line x1="40" y1="56" x2="24" y2="64" stroke="currentColor" strokeWidth="0.8" className="text-primary" />
+      </svg>
+
+      {/* Pulse wave ring - center */}
+      <svg
+        className="absolute top-[30%] left-[50%] -translate-x-1/2 w-64 opacity-[0.03] dark:opacity-[0.05]"
+        viewBox="0 0 200 200"
+        fill="none"
+      >
+        <circle cx="100" cy="100" r="90" stroke="currentColor" strokeWidth="0.5" className="text-primary" opacity="0.3" />
+        <circle cx="100" cy="100" r="70" stroke="currentColor" strokeWidth="0.5" className="text-primary" opacity="0.4" />
+        <circle cx="100" cy="100" r="50" stroke="currentColor" strokeWidth="0.5" className="text-primary" opacity="0.5" />
+        <circle cx="100" cy="100" r="30" stroke="currentColor" strokeWidth="0.5" className="text-primary" opacity="0.6" />
+      </svg>
+
+      {/* ====== LAYER 4: Decorative Geometric Lines ====== */}
+      {/* Thin diagonal lines for a modern tech feel */}
+
+      {/* Top-right diagonal accent line */}
       <div
-        className="absolute inset-0 dark:opacity-100 opacity-0"
+        className="absolute top-0 right-[20%] w-px h-[35%] opacity-[0.04] dark:opacity-[0.06]"
         style={{
-          background: "radial-gradient(ellipse 70% 70% at 50% 50%, transparent 50%, oklch(0 0 0 / 0.06) 100%)",
+          background: "linear-gradient(180deg, transparent 0%, oklch(0.55 0.08 172 / 0.8) 50%, transparent 100%)",
+          transform: "rotate(15deg)",
+          transformOrigin: "top right",
         }}
       />
+
+      {/* Bottom-left diagonal accent line */}
+      <div
+        className="absolute bottom-0 left-[15%] w-px h-[30%] opacity-[0.04] dark:opacity-[0.06]"
+        style={{
+          background: "linear-gradient(0deg, transparent 0%, oklch(0.55 0.08 172 / 0.8) 50%, transparent 100%)",
+          transform: "rotate(-12deg)",
+          transformOrigin: "bottom left",
+        }}
+      />
+
+      {/* Horizontal accent line - subtle */}
+      <div
+        className="absolute top-[48%] left-0 right-0 h-px opacity-[0.03] dark:opacity-[0.04]"
+        style={{
+          background: "linear-gradient(90deg, transparent 5%, oklch(0.55 0.08 172 / 0.5) 30%, oklch(0.55 0.08 172 / 0.5) 70%, transparent 95%)",
+        }}
+      />
+
+      {/* ====== LAYER 5: Vignette Edge Gradient ====== */}
+      {/* Subtle darkening at edges for depth */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background: isDark
+            ? "radial-gradient(ellipse 75% 70% at 50% 50%, transparent 40%, oklch(0 0 0 / 0.15) 100%)"
+            : "radial-gradient(ellipse 75% 70% at 50% 50%, transparent 40%, oklch(0.98 0.002 160 / 0.4) 100%)",
+        }}
+      />
+
+      {/* ====== LAYER 6: Subtle Noise Texture ====== */}
+      {/* SVG noise filter for a premium feel - very subtle */}
+      <svg className="absolute inset-0 w-full h-full opacity-[0.02] dark:opacity-[0.03]">
+        <filter id="noise">
+          <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" />
+        </filter>
+        <rect width="100%" height="100%" filter="url(#noise)" />
+      </svg>
     </div>
   );
 }

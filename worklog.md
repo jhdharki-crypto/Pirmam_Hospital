@@ -192,3 +192,28 @@ Stage Summary:
 - New items auto-create in DB when you upload an image (no need to click Save first)
 - User can add unlimited gallery items and upload images to them immediately
 ---
+Task ID: 5
+Agent: main
+Task: Replace animated background with cool static background (no movement)
+
+Work Log:
+- Read medical-background.tsx: had 6 animated layers (gradient orbs, dot grid, light rays, medical SVGs, floating particles, vignette) — all with CSS animations
+- Read globals.css: had 12 unused @keyframes for background animations
+- Rewrote medical-background.tsx as completely static:
+  - Layer 1: Gradient mesh (6 overlapping radial gradients in teal/emerald, adapts to dark/light mode)
+  - Layer 2: Dot grid pattern with mask (subtle, centered)
+  - Layer 3: Medical SVG watermarks (DNA helix, medical crosses, ECG heartbeat lines, stethoscope, heart, pill, molecular structure, pulse rings) — all static
+  - Layer 4: Decorative geometric lines (diagonal and horizontal accent lines)
+  - Layer 5: Vignette edge gradient for depth
+  - Layer 6: SVG noise texture for premium feel
+- Removed all 12 unused animation keyframes from globals.css (orb-drift-1 through 5, light-sweep, light-sweep-reverse, dna-rotate, cross-pulse, ecg-draw, particle-float)
+- Used useTheme hook to adapt colors for dark/light modes
+- Verified in browser: light mode renders correctly, dark mode renders correctly, zero console errors
+- Lint passes clean
+
+Stage Summary:
+- Background is now a stunning static gradient mesh with medical SVG watermarks — zero animation/movement
+- Adapts beautifully to both light and dark modes
+- Premium look through layered composition (gradients + patterns + SVGs + vignette + noise)
+- All unused CSS keyframes cleaned up from globals.css
+---
