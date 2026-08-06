@@ -513,26 +513,73 @@ export function AdminPanel() {
           setDepartments((prev) =>
             prev.map((d, i) => (i === index ? { ...d, image: url } : d))
           );
-          /* Auto-save to database so image persists */
-          if (item && !item.id.startsWith("new-")) {
-            await fetch("/api/admin/departments", {
-              method: "PUT",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ ...item, image: url }),
-            });
+          /* Auto-save to database - if new item, create it first */
+          if (item) {
+            if (item.id.startsWith("new-")) {
+              const createRes = await fetch("/api/admin/departments", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  name: item.name || `بەش ${index + 1}`,
+                  description: item.description || "",
+                  iconName: item.iconName || "HeartPulse",
+                  image: url,
+                  order: item.order ?? index,
+                }),
+              });
+              if (createRes.ok) {
+                const created = await createRes.json();
+                setDepartments((prev) =>
+                  prev.map((d, i) =>
+                    i === index ? { ...d, id: created.id, image: url } : d
+                  )
+                );
+              }
+            } else {
+              await fetch("/api/admin/departments", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ ...item, image: url }),
+              });
+            }
           }
         } else if (type === "gallery") {
           const item = galleryItems[index];
           setGalleryItems((prev) =>
             prev.map((g, i) => (i === index ? { ...g, image: url } : g))
           );
-          /* Auto-save to database */
-          if (item && !item.id.startsWith("new-")) {
-            await fetch("/api/admin/gallery", {
-              method: "PUT",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ ...item, image: url }),
-            });
+          /* Auto-save to database - if new item, create it first */
+          if (item) {
+            if (item.id.startsWith("new-")) {
+              /* Create the item in DB first, then update local state with real ID */
+              const createRes = await fetch("/api/admin/gallery", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  title: item.title || `گەلەری ${index + 1}`,
+                  description: item.description || "",
+                  image: url,
+                  color: item.color || "from-teal-600/80 to-emerald-700/80",
+                  order: item.order ?? index,
+                }),
+              });
+              if (createRes.ok) {
+                const created = await createRes.json();
+                /* Replace the temp ID with the real one from DB */
+                setGalleryItems((prev) =>
+                  prev.map((g, i) =>
+                    i === index ? { ...g, id: created.id, image: url } : g
+                  )
+                );
+              }
+            } else {
+              /* Existing item - just update the image */
+              await fetch("/api/admin/gallery", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ ...item, image: url }),
+              });
+            }
           }
         }
 

@@ -173,3 +173,22 @@ Stage Summary:
 - From now on, code changes will NOT touch the database
 - Full reset only possible with explicit ?reset=true parameter
 ---
+---
+Task ID: 4
+Agent: main
+Task: Fix gallery image upload for new items
+
+Work Log:
+- Identified bug: when uploading image to a NEW gallery item (before clicking Save), image was not persisted because the handler skipped items with "new-" prefix IDs
+- Fixed handleImageUpload for both gallery AND departments:
+  - For new items: auto-creates the item in database first, then updates local state with real DB ID
+  - For existing items: updates normally via PUT
+- Verified gallery API works (create, read, delete)
+- Verified admin panel shows "Add new item" button and new items appear correctly
+- No errors in dev server logs
+
+Stage Summary:
+- Gallery and Department uploads now work for both existing and new items
+- New items auto-create in DB when you upload an image (no need to click Save first)
+- User can add unlimited gallery items and upload images to them immediately
+---
