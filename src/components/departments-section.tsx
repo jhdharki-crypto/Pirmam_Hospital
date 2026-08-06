@@ -21,12 +21,47 @@ import {
   ScanLine,
   Activity,
   Ear,
+  /* --- New medical icons --- */
+  BrainCircuit,
+  ScanHeart,
+  ScanEye,
+  ScanFace,
+  ScissorsLineDashed,
+  Thermometer,
+  ThermometerSun,
+  ThermometerSnowflake,
+  Bandage,
+  Ambulance,
+  Hospital,
+  Siren,
+  BedDouble,
+  Dna,
+  Droplets,
+  Dumbbell,
+  Footprints,
+  Fingerprint,
+  HandHeart,
+  HandHelping,
+  Waves,
+  WavesLadder,
+  Ribbon,
+  ShieldCheck,
+  FlaskConical,
+  Beaker,
+  ClipboardList,
+  ClipboardCheck,
+  GaugeCircle,
+  Atom,
+  Smile,
+  Laugh,
+  PillBottle,
   type LucideIcon,
 } from "lucide-react";
 import { useContent } from "@/lib/content-store";
 
-/* Icon mapping from name string to component */
+/* Icon mapping from name string to component — comprehensive medical icon set */
 const iconMap: Record<string, LucideIcon> = {
+  /* Original 12 */
   HeartPulse,
   Brain,
   Bone,
@@ -39,6 +74,65 @@ const iconMap: Record<string, LucideIcon> = {
   ScanLine,
   Activity,
   Ear,
+  /* Brain / Neuro */
+  BrainCircuit,
+  /* Cardiology / Heart */
+  ScanHeart,
+  /* Eye / Ophthalmology */
+  ScanEye,
+  /* Face / Maxillofacial */
+  ScanFace,
+  /* Surgery */
+  ScissorsLineDashed,
+  /* Fever / Internal */
+  Thermometer,
+  ThermometerSun,
+  ThermometerSnowflake,
+  /* First Aid */
+  Bandage,
+  /* Emergency */
+  Ambulance,
+  Hospital,
+  Siren,
+  /* Inpatient / ICU */
+  BedDouble,
+  /* Genetics */
+  Dna,
+  /* Kidney / Nephrology / Blood */
+  Droplets,
+  /* Physiotherapy / Rehab */
+  Dumbbell,
+  /* Podiatry / Feet */
+  Footprints,
+  /* Dermatology / Skin */
+  Fingerprint,
+  /* Hand / Plastic Surgery */
+  HandHeart,
+  /* Patient Care */
+  HandHelping,
+  /* Pulmonology / Respiratory */
+  Waves,
+  WavesLadder,
+  /* Oncology / Cancer */
+  Ribbon,
+  /* Infection Control */
+  ShieldCheck,
+  /* Lab / Chemistry */
+  FlaskConical,
+  Beaker,
+  /* Medical Records */
+  ClipboardList,
+  ClipboardCheck,
+  /* ICU / Blood Pressure */
+  GaugeCircle,
+  /* Radiology */
+  Atom,
+  /* Dentistry */
+  Smile,
+  /* Psychiatry / Mental Health */
+  Laugh,
+  /* Pharmacy */
+  PillBottle,
 };
 
 /* Animation for each card */

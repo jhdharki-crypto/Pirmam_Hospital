@@ -31,6 +31,39 @@ import {
   Loader2,
   ShieldCheck,
   PenSquare,
+  /* --- New medical icons --- */
+  BrainCircuit,
+  ScanHeart,
+  ScanEye,
+  ScanFace,
+  ScissorsLineDashed,
+  Thermometer,
+  ThermometerSun,
+  ThermometerSnowflake,
+  Bandage,
+  Ambulance,
+  Hospital as HospitalIcon,
+  Siren,
+  BedDouble,
+  Dna,
+  Droplets,
+  Dumbbell,
+  Footprints,
+  Fingerprint,
+  HandHeart,
+  HandHelping,
+  Waves,
+  WavesLadder,
+  Ribbon,
+  FlaskConical,
+  Beaker,
+  ClipboardList,
+  ClipboardCheck,
+  GaugeCircle,
+  Atom,
+  Smile,
+  Laugh,
+  PillBottle,
 } from "lucide-react";
 
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
@@ -70,6 +103,7 @@ import type { Department, GalleryItem, ArchiveItem, ArchiveImage } from "@/lib/c
    ============================ */
 
 const DEPARTMENT_ICONS = [
+  /* Original 12 */
   "HeartPulse",
   "Brain",
   "Bone",
@@ -82,9 +116,69 @@ const DEPARTMENT_ICONS = [
   "ScanLine",
   "Activity",
   "Ear",
+  /* Brain / Neuro */
+  "BrainCircuit",
+  /* Cardiology / Heart */
+  "ScanHeart",
+  /* Ophthalmology */
+  "ScanEye",
+  /* Maxillofacial */
+  "ScanFace",
+  /* Surgery */
+  "ScissorsLineDashed",
+  /* Fever / Internal */
+  "Thermometer",
+  "ThermometerSun",
+  "ThermometerSnowflake",
+  /* First Aid */
+  "Bandage",
+  /* Emergency */
+  "Ambulance",
+  "Hospital",
+  "Siren",
+  /* ICU / Inpatient */
+  "BedDouble",
+  /* Genetics */
+  "Dna",
+  /* Kidney / Nephrology / Blood */
+  "Droplets",
+  /* Physiotherapy / Rehab */
+  "Dumbbell",
+  /* Podiatry / Feet */
+  "Footprints",
+  /* Dermatology / Skin */
+  "Fingerprint",
+  /* Hand / Plastic Surgery */
+  "HandHeart",
+  /* Patient Care */
+  "HandHelping",
+  /* Pulmonology / Respiratory */
+  "Waves",
+  "WavesLadder",
+  /* Oncology / Cancer */
+  "Ribbon",
+  /* Infection Control */
+  "ShieldCheck",
+  /* Lab / Chemistry */
+  "FlaskConical",
+  "Beaker",
+  /* Medical Records */
+  "ClipboardList",
+  "ClipboardCheck",
+  /* ICU / Blood Pressure */
+  "GaugeCircle",
+  /* Radiology */
+  "Atom",
+  /* Dentistry */
+  "Smile",
+  /* Psychiatry / Mental Health */
+  "Laugh",
+  /* Pharmacy */
+  "PillBottle",
 ] as const;
 
 const ICON_MAP: Record<string, React.ElementType> = {
+  /* Original 12 */
   HeartPulse,
   Brain,
   Bone,
@@ -97,10 +191,45 @@ const ICON_MAP: Record<string, React.ElementType> = {
   ScanLine,
   Activity,
   Ear,
+  /* New icons */
+  BrainCircuit,
+  ScanHeart,
+  ScanEye,
+  ScanFace,
+  ScissorsLineDashed,
+  Thermometer,
+  ThermometerSun,
+  ThermometerSnowflake,
+  Bandage,
+  Ambulance,
+  Hospital: HospitalIcon,
+  Siren,
+  BedDouble,
+  Dna,
+  Droplets,
+  Dumbbell,
+  Footprints,
+  Fingerprint,
+  HandHeart,
+  HandHelping,
+  Waves,
+  WavesLadder,
+  Ribbon,
+  ShieldCheck,
+  FlaskConical,
+  Beaker,
+  ClipboardList,
+  ClipboardCheck,
+  GaugeCircle,
+  Atom,
+  Smile,
+  Laugh,
+  PillBottle,
 };
 
 const ICON_LABELS: Record<string, string> = {
-  HeartPulse: "دڵ",
+  /* === Original 12 === */
+  HeartPulse: "دڵ (هەناسە)",
   Brain: "مێشک",
   Bone: "ئێسک",
   Baby: "منداڵ",
@@ -112,6 +241,65 @@ const ICON_LABELS: Record<string, string> = {
   ScanLine: "سکان",
   Activity: "چالاک",
   Ear: "گوێ",
+  /* === Brain / Neuro === */
+  BrainCircuit: "مێشک (نەخۆشی عەصبی)",
+  /* === Cardiology / Heart === */
+  ScanHeart: "سکانەری دڵ",
+  /* === Ophthalmology === */
+  ScanEye: "سکانەری چاو",
+  /* === Maxillofacial === */
+  ScanFace: "سکانەری ڕوخسار",
+  /* === Surgery === */
+  ScissorsLineDashed: "چێرژی",
+  /* === Fever / Internal === */
+  Thermometer: "پێوانەی گەرمی",
+  ThermometerSun: "تەبەت / گەرمی بەرز",
+  ThermometerSnowflake: "هەستیاری ساردی",
+  /* === First Aid === */
+  Bandage: "یەکەم یارمەتی",
+  /* === Emergency === */
+  Ambulance: "ئامبولانس",
+  Hospital: "نەخۆشخانە",
+  Siren: "نەخشەی فریاگوزاری",
+  /* === ICU / Inpatient === */
+  BedDouble: "خەوخانە / یەکەی چاودێری",
+  /* === Genetics === */
+  Dna: "DNA / جینیتیک",
+  /* === Kidney / Nephrology === */
+  Droplets: "گورچیلە / خوێن",
+  /* === Physiotherapy === */
+  Dumbbell: "فیزیۆتێراپی / وەرزش",
+  /* === Podiatry === */
+  Footprints: "قاچ و پێ",
+  /* === Dermatology === */
+  Fingerprint: "پێست / دەنکۆڵە",
+  /* === Hand / Plastic Surgery === */
+  HandHeart: "دەست / نەشتەرگەری جوانی",
+  /* === Patient Care === */
+  HandHelping: "چاودێری نەخۆش",
+  /* === Pulmonology === */
+  Waves: "هەناسەدان / سییەکان",
+  WavesLadder: "سییەکان / هەناسە",
+  /* === Oncology === */
+  Ribbon: "شێرپەنجە / ئۆنکۆلۆژی",
+  /* === Infection Control === */
+  ShieldCheck: "کۆنترۆلی هەوێن",
+  /* === Lab === */
+  FlaskConical: "تاقیگە / کیمیا",
+  Beaker: "تاقیگە",
+  /* === Medical Records === */
+  ClipboardList: "تۆمارەکانی نەخۆش",
+  ClipboardCheck: "پشکنین / بەسەرداچوونەوە",
+  /* === ICU === */
+  GaugeCircle: "فشاری خوێن / ICU",
+  /* === Radiology === */
+  Atom: "ڕادیۆلۆژی / تیشک",
+  /* === Dentistry === */
+  Smile: "دنناپزیشکی / ددان",
+  /* === Psychiatry === */
+  Laugh: "دەروونپزیشکی",
+  /* === Pharmacy === */
+  PillBottle: "دەرمانخانە",
 };
 
 const PRESET_COLORS = [
