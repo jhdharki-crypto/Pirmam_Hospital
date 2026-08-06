@@ -1,300 +1,243 @@
 /* =============================================
-   Pirmam Hospital - Medical Equipment Background Animation
-   Floating SVG medical shapes that drift across the page.
-
-   EDIT: You can adjust opacity, speed, and positions below.
-   Each SVG block controls one floating shape.
+   Pirmam Hospital - Premium Animated Background
+   Multi-layered: gradient orbs, dot grid, light rays, pulse elements
+   Designed to impress — inspired by Stripe/Linear/Vercel aesthetics
    ============================================= */
 
 "use client";
 
-/*
-   Each medical shape is defined here as an SVG path.
-   They are rendered at very low opacity so they don't
-   interfere with reading the website content.
-
-   In light mode: opacity ~0.04-0.06
-   In dark mode: opacity ~0.06-0.10 (slightly more visible)
-*/
-
 export function MedicalBackground() {
   return (
-    <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden" aria-hidden="true">
+    <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none" aria-hidden="true">
 
-      {/* ECG Heartbeat Line - top area */}
+      {/* ====== LAYER 1: Animated Gradient Orbs ====== */}
+      {/* Large soft blurred color circles that slowly drift around */}
+
+      {/* Primary teal orb - top right */}
+      <div
+        className="absolute w-[600px] h-[600px] rounded-full opacity-[0.12] dark:opacity-[0.15]"
+        style={{
+          top: "-10%",
+          right: "-8%",
+          background: "radial-gradient(circle, oklch(0.65 0.14 172 / 0.6) 0%, oklch(0.65 0.14 172 / 0) 70%)",
+          filter: "blur(80px)",
+          willChange: "transform",
+          animation: "orb-drift-1 25s ease-in-out infinite",
+        }}
+      />
+
+      {/* Secondary emerald orb - bottom left */}
+      <div
+        className="absolute w-[500px] h-[500px] rounded-full opacity-[0.10] dark:opacity-[0.13]"
+        style={{
+          bottom: "-5%",
+          left: "-5%",
+          background: "radial-gradient(circle, oklch(0.60 0.12 160 / 0.5) 0%, oklch(0.60 0.12 160 / 0) 70%)",
+          filter: "blur(70px)",
+          willChange: "transform",
+          animation: "orb-drift-2 30s ease-in-out infinite",
+        }}
+      />
+
+      {/* Tertiary glow orb - center */}
+      <div
+        className="absolute w-[400px] h-[400px] rounded-full opacity-[0.06] dark:opacity-[0.10]"
+        style={{
+          top: "35%",
+          left: "40%",
+          background: "radial-gradient(circle, oklch(0.70 0.15 172 / 0.4) 0%, oklch(0.70 0.15 172 / 0) 70%)",
+          filter: "blur(90px)",
+          willChange: "transform",
+          animation: "orb-drift-3 35s ease-in-out infinite",
+        }}
+      />
+
+      {/* Small accent orb - top left */}
+      <div
+        className="absolute w-[300px] h-[300px] rounded-full opacity-[0.08] dark:opacity-[0.10]"
+        style={{
+          top: "5%",
+          left: "15%",
+          background: "radial-gradient(circle, oklch(0.55 0.16 180 / 0.4) 0%, oklch(0.55 0.16 180 / 0) 70%)",
+          filter: "blur(60px)",
+          willChange: "transform",
+          animation: "orb-drift-4 28s ease-in-out infinite 5s",
+        }}
+      />
+
+      {/* Small warm accent orb - bottom right */}
+      <div
+        className="absolute w-[350px] h-[350px] rounded-full opacity-[0.05] dark:opacity-[0.07]"
+        style={{
+          bottom: "15%",
+          right: "10%",
+          background: "radial-gradient(circle, oklch(0.72 0.12 165 / 0.3) 0%, oklch(0.72 0.12 165 / 0) 70%)",
+          filter: "blur(80px)",
+          willChange: "transform",
+          animation: "orb-drift-5 32s ease-in-out infinite 8s",
+        }}
+      />
+
+      {/* ====== LAYER 2: Subtle Dot Grid Pattern ====== */}
+      <div
+        className="absolute inset-0 opacity-[0.3] dark:opacity-[0.15]"
+        style={{
+          backgroundImage: "radial-gradient(circle, oklch(0.50 0.08 172 / 0.5) 1px, transparent 1px)",
+          backgroundSize: "40px 40px",
+          maskImage: "radial-gradient(ellipse 80% 60% at 50% 50%, black 30%, transparent 100%)",
+          WebkitMaskImage: "radial-gradient(ellipse 80% 60% at 50% 50%, black 30%, transparent 100%)",
+        }}
+      />
+
+      {/* ====== LAYER 3: Animated Light Rays ====== */}
+      {/* Sweeping diagonal light beams */}
+
+      <div
+        className="absolute inset-0 overflow-hidden"
+        style={{ opacity: "0.04", willChange: "transform", animation: "light-sweep 20s ease-in-out infinite" }}
+      >
+        <div
+          className="absolute w-[200%] h-[2px] origin-left"
+          style={{
+            top: "25%",
+            left: "-20%",
+            background: "linear-gradient(90deg, transparent 0%, oklch(0.65 0.14 172 / 0.8) 30%, transparent 60%)",
+            transform: "rotate(-15deg)",
+          }}
+        />
+      </div>
+
+      <div
+        className="absolute inset-0 overflow-hidden"
+        style={{ opacity: "0.03", willChange: "transform", animation: "light-sweep 25s ease-in-out infinite 7s" }}
+      >
+        <div
+          className="absolute w-[200%] h-[2px] origin-left"
+          style={{
+            top: "60%",
+            left: "-20%",
+            background: "linear-gradient(90deg, transparent 0%, oklch(0.60 0.12 160 / 0.8) 30%, transparent 60%)",
+            transform: "rotate(-10deg)",
+          }}
+        />
+      </div>
+
+      <div
+        className="absolute inset-0 overflow-hidden"
+        style={{ opacity: "0.035", willChange: "transform", animation: "light-sweep-reverse 22s ease-in-out infinite 3s" }}
+      >
+        <div
+          className="absolute w-[200%] h-[2px] origin-left"
+          style={{
+            top: "45%",
+            left: "-20%",
+            background: "linear-gradient(90deg, transparent 0%, oklch(0.68 0.15 172 / 0.7) 25%, transparent 55%)",
+            transform: "rotate(-20deg)",
+          }}
+        />
+      </div>
+
+      {/* ====== LAYER 4: Pulsing Medical Signature ====== */}
+      {/* A subtle pulsing DNA/double helix pattern - very faint */}
+
       <svg
-        className="absolute top-[8%] right-[5%] w-64 h-16 opacity-[0.05] dark:opacity-[0.08]"
-        viewBox="0 0 240 60"
+        className="absolute top-[10%] right-[6%] w-40 opacity-[0.06] dark:opacity-[0.09]"
+        viewBox="0 0 100 200"
         fill="none"
-        style={{ animation: "med-hover 12s ease-in-out infinite" }}
+        style={{ willChange: "transform, opacity", animation: "dna-rotate 20s linear infinite" }}
+      >
+        <path d="M30 0 Q70 25 30 50 Q-10 75 30 100 Q70 125 30 150 Q-10 175 30 200" stroke="currentColor" strokeWidth="1.5" className="text-primary" />
+        <path d="M70 0 Q30 25 70 50 Q110 75 70 100 Q30 125 70 150 Q110 175 70 200" stroke="currentColor" strokeWidth="1.5" className="text-primary" />
+        {/* Connecting rungs */}
+        {[10, 30, 50, 70, 90, 110, 130, 150, 170, 190].map((y, i) => {
+          const x1 = i % 2 === 0 ? 35 : 65;
+          const x2 = i % 2 === 0 ? 65 : 35;
+          return (
+            <line key={i} x1={x1} y1={y} x2={x2} y2={y} stroke="currentColor" strokeWidth="0.8" className="text-primary" opacity="0.4" />
+          );
+        })}
+      </svg>
+
+      {/* Pulsing medical cross - subtle signature */}
+      <svg
+        className="absolute bottom-[20%] right-[15%] w-16 h-16 opacity-[0.06] dark:opacity-[0.09]"
+        viewBox="0 0 64 64"
+        fill="none"
+        style={{ willChange: "transform, opacity", animation: "cross-pulse 6s ease-in-out infinite" }}
+      >
+        <path d="M24 8 H40 V24 H56 V40 H40 V56 H24 V40 H8 V24 H24 Z" className="fill-primary" />
+      </svg>
+
+      {/* ECG heartbeat line - animated across */}
+      <svg
+        className="absolute bottom-[8%] left-[5%] w-[300px] sm:w-[500px] opacity-[0.08] dark:opacity-[0.12]"
+        viewBox="0 0 500 60"
+        fill="none"
+        style={{ willChange: "opacity" }}
       >
         <path
-          d="M0 30 L60 30 L75 30 L85 10 L95 50 L105 5 L115 55 L125 30 L140 30 L160 30 L175 20 L185 40 L195 25 L205 35 L240 30"
+          d="M0 30 L80 30 L100 30 L115 10 L125 50 L135 5 L145 55 L155 30 L180 30 L200 30 L220 25 L230 35 L250 20 L260 40 L280 28 L300 30 L500 30"
           stroke="currentColor"
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
           className="text-primary"
           style={{
-            strokeDasharray: "600",
-            animation: "ecg-pulse 4s linear infinite",
+            strokeDasharray: "800",
+            animation: "ecg-draw 6s linear infinite",
           }}
         />
       </svg>
 
-      {/* ECG Line 2 - middle left area */}
+      {/* Second ECG line - top */}
       <svg
-        className="absolute top-[55%] left-[3%] w-48 h-12 opacity-[0.04] dark:opacity-[0.06]"
-        viewBox="0 0 240 60"
+        className="absolute top-[6%] left-[30%] w-[200px] sm:w-[350px] opacity-[0.05] dark:opacity-[0.08]"
+        viewBox="0 0 500 60"
         fill="none"
-        style={{ animation: "med-hover 15s ease-in-out infinite 3s" }}
       >
         <path
-          d="M0 30 L50 30 L70 30 L80 12 L90 48 L100 8 L110 52 L120 30 L150 30 L180 30 L200 22 L215 38 L230 28 L240 30"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="text-primary"
-          style={{
-            strokeDasharray: "600",
-            animation: "ecg-pulse 5s linear infinite 1s",
-          }}
-        />
-      </svg>
-
-      {/* Medical Cross - top left floating */}
-      <svg
-        className="absolute top-[15%] left-[8%] w-10 h-10 opacity-[0.05] dark:opacity-[0.08]"
-        viewBox="0 0 40 40"
-        fill="none"
-        style={{ animation: "med-float-slow 18s ease-in-out infinite" }}
-      >
-        <path d="M16 6 H24 V16 H34 V24 H24 V34 H16 V24 H6 V16 H16 Z" className="fill-primary" />
-      </svg>
-
-      {/* Medical Cross 2 - bottom right floating */}
-      <svg
-        className="absolute bottom-[20%] right-[10%] w-8 h-8 opacity-[0.04] dark:opacity-[0.06]"
-        viewBox="0 0 40 40"
-        fill="none"
-        style={{ animation: "med-float-slow 22s ease-in-out infinite 5s" }}
-      >
-        <path d="M16 6 H24 V16 H34 V24 H24 V34 H16 V24 H6 V16 H16 Z" className="fill-primary" />
-      </svg>
-
-      {/* Pill Capsule drifting up from bottom-left */}
-      <svg
-        className="absolute bottom-0 left-[20%] w-12 h-6 opacity-[0.05] dark:opacity-[0.07]"
-        viewBox="0 0 48 24"
-        fill="none"
-        style={{ animation: "med-drift-up 35s linear infinite 2s" }}
-      >
-        <rect x="2" y="2" width="20" height="20" rx="10" className="fill-primary" opacity="0.6" />
-        <rect x="22" y="2" width="12" height="20" rx="0" className="fill-primary" opacity="0.4" />
-        <rect x="34" y="2" width="12" height="20" rx="10" className="fill-primary" opacity="0.4" />
-      </svg>
-
-      {/* Pill 2 drifting down from top-right */}
-      <svg
-        className="absolute top-0 right-[25%] w-10 h-5 opacity-[0.04] dark:opacity-[0.06]"
-        viewBox="0 0 48 24"
-        fill="none"
-        style={{ animation: "med-drift-down 40s linear infinite 8s" }}
-      >
-        <rect x="2" y="2" width="20" height="20" rx="10" className="fill-primary" opacity="0.5" />
-        <rect x="22" y="2" width="12" height="20" rx="0" className="fill-primary" opacity="0.35" />
-        <rect x="34" y="2" width="12" height="20" rx="10" className="fill-primary" opacity="0.35" />
-      </svg>
-
-      {/* Syringe - right side gentle hover */}
-      <svg
-        className="absolute top-[35%] right-[4%] w-8 h-20 opacity-[0.05] dark:opacity-[0.07]"
-        viewBox="0 0 32 80"
-        fill="none"
-        style={{ animation: "med-hover 16s ease-in-out infinite 2s" }}
-      >
-        <rect x="10" y="15" width="12" height="40" rx="2" className="stroke-primary" strokeWidth="1.5" fill="none" />
-        <line x1="16" y1="0" x2="16" y2="18" className="stroke-primary" strokeWidth="1.5" />
-        <rect x="12" y="0" width="8" height="5" rx="1" className="fill-primary" />
-        <line x1="16" y1="55" x2="16" y2="75" className="stroke-primary" strokeWidth="1.5" />
-        <line x1="10" y1="35" x2="22" y2="35" className="stroke-primary" strokeWidth="1" opacity="0.5" />
-        <line x1="10" y1="25" x2="14" y2="25" className="stroke-primary" strokeWidth="0.8" opacity="0.4" />
-        <line x1="10" y1="30" x2="14" y2="30" className="stroke-primary" strokeWidth="0.8" opacity="0.4" />
-        <line x1="10" y1="40" x2="14" y2="40" className="stroke-primary" strokeWidth="0.8" opacity="0.4" />
-        <line x1="10" y1="45" x2="14" y2="45" className="stroke-primary" strokeWidth="0.8" opacity="0.4" />
-      </svg>
-
-      {/* Stethoscope - left side gentle float */}
-      <svg
-        className="absolute top-[25%] left-[3%] w-12 h-16 opacity-[0.04] dark:opacity-[0.06]"
-        viewBox="0 0 48 64"
-        fill="none"
-        style={{ animation: "med-float-slow 20s ease-in-out infinite 4s" }}
-      >
-        <circle cx="14" cy="4" r="3" className="stroke-primary" strokeWidth="1.2" fill="none" />
-        <circle cx="34" cy="4" r="3" className="stroke-primary" strokeWidth="1.2" fill="none" />
-        <path d="M14 7 L14 16 Q14 22 20 24 L24 25" className="stroke-primary" strokeWidth="1.2" fill="none" />
-        <path d="M34 7 L34 16 Q34 22 28 24 L24 25" className="stroke-primary" strokeWidth="1.2" fill="none" />
-        <line x1="24" y1="25" x2="24" y2="50" className="stroke-primary" strokeWidth="1.2" />
-        <circle cx="24" cy="54" r="7" className="stroke-primary" strokeWidth="1.2" fill="none" />
-        <circle cx="24" cy="54" r="3" className="stroke-primary" strokeWidth="0.8" fill="none" opacity="0.5" />
-      </svg>
-
-      {/* DNA Double Helix - center right slowly rotating */}
-      <svg
-        className="absolute top-[60%] right-[15%] w-8 h-24 opacity-[0.04] dark:opacity-[0.06]"
-        viewBox="0 0 32 96"
-        fill="none"
-        style={{ animation: "med-hover 25s ease-in-out infinite 1s" }}
-      >
-        <path d="M8 0 Q24 12 8 24 Q-8 36 8 48 Q24 60 8 72 Q-8 84 8 96" className="stroke-primary" strokeWidth="1.2" />
-        <path d="M24 0 Q8 12 24 24 Q40 36 24 48 Q8 60 24 72 Q40 84 24 96" className="stroke-primary" strokeWidth="1.2" />
-        <line x1="10" y1="6" x2="22" y2="6" className="stroke-primary" strokeWidth="0.8" opacity="0.4" />
-        <line x1="14" y1="18" x2="18" y2="18" className="stroke-primary" strokeWidth="0.8" opacity="0.4" />
-        <line x1="10" y1="30" x2="22" y2="30" className="stroke-primary" strokeWidth="0.8" opacity="0.4" />
-        <line x1="14" y1="42" x2="18" y2="42" className="stroke-primary" strokeWidth="0.8" opacity="0.4" />
-        <line x1="10" y1="54" x2="22" y2="54" className="stroke-primary" strokeWidth="0.8" opacity="0.4" />
-        <line x1="14" y1="66" x2="18" y2="66" className="stroke-primary" strokeWidth="0.8" opacity="0.4" />
-        <line x1="10" y1="78" x2="22" y2="78" className="stroke-primary" strokeWidth="0.8" opacity="0.4" />
-        <line x1="14" y1="90" x2="18" y2="90" className="stroke-primary" strokeWidth="0.8" opacity="0.4" />
-      </svg>
-
-      {/* Heart with ECG line inside - bottom center pulsing */}
-      <svg
-        className="absolute bottom-[10%] left-[40%] w-14 h-14 opacity-[0.04] dark:opacity-[0.07]"
-        viewBox="0 0 56 56"
-        fill="none"
-        style={{ animation: "med-pulse-soft 4s ease-in-out infinite" }}
-      >
-        <path d="M28 48 L6 28 C0 22 0 12 8 8 C14 5 22 5 28 12 C34 5 42 5 48 8 C56 12 56 22 50 28 Z" className="fill-primary" />
-        <path d="M12 28 L20 28 L24 20 L28 36 L32 16 L36 32 L40 28 L44 28" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.6" />
-      </svg>
-
-      {/* Blood Drop - drifting down from top center-right */}
-      <svg
-        className="absolute top-[5%] right-[40%] w-6 h-8 opacity-[0.05] dark:opacity-[0.07]"
-        viewBox="0 0 24 32"
-        fill="none"
-        style={{ animation: "med-drift-down 30s linear infinite 5s" }}
-      >
-        <path d="M12 0 C12 0 0 16 0 22 C0 28 5.4 32 12 32 C18.6 32 24 28 24 22 C24 16 12 0 12 0 Z" className="fill-primary" />
-      </svg>
-
-      {/* Thermometer - left side lower floating */}
-      <svg
-        className="absolute bottom-[30%] left-[12%] w-5 h-16 opacity-[0.04] dark:opacity-[0.06]"
-        viewBox="0 0 20 64"
-        fill="none"
-        style={{ animation: "med-hover 18s ease-in-out infinite 7s" }}
-      >
-        <rect x="7" y="2" width="6" height="44" rx="3" className="stroke-primary" strokeWidth="1.2" fill="none" />
-        <circle cx="10" cy="54" r="8" className="stroke-primary" strokeWidth="1.2" fill="none" />
-        <rect x="9" y="18" width="2" height="28" className="fill-primary" opacity="0.5" />
-        <circle cx="10" cy="54" r="5" className="fill-primary" opacity="0.5" />
-        <line x1="13" y1="10" x2="16" y2="10" className="stroke-primary" strokeWidth="0.7" opacity="0.4" />
-        <line x1="13" y1="18" x2="16" y2="18" className="stroke-primary" strokeWidth="0.7" opacity="0.4" />
-        <line x1="13" y1="26" x2="16" y2="26" className="stroke-primary" strokeWidth="0.7" opacity="0.4" />
-        <line x1="13" y1="34" x2="16" y2="34" className="stroke-primary" strokeWidth="0.7" opacity="0.4" />
-      </svg>
-
-      {/* Microscope - right-center gentle float */}
-      <svg
-        className="absolute top-[42%] left-[70%] w-10 h-14 opacity-[0.04] dark:opacity-[0.06]"
-        viewBox="0 0 40 56"
-        fill="none"
-        style={{ animation: "med-float-slow 22s ease-in-out infinite 3s" }}
-      >
-        <rect x="16" y="0" width="8" height="8" rx="2" className="stroke-primary" strokeWidth="1.2" fill="none" />
-        <rect x="18" y="8" width="4" height="16" className="stroke-primary" strokeWidth="1" fill="none" />
-        <path d="M18 16 L8 16 L8 40" className="stroke-primary" strokeWidth="1.5" fill="none" strokeLinecap="round" />
-        <rect x="4" y="36" width="20" height="3" rx="1" className="stroke-primary" strokeWidth="1" fill="none" />
-        <rect x="17" y="24" width="6" height="6" rx="1" className="stroke-primary" strokeWidth="1" fill="none" />
-        <rect x="2" y="48" width="24" height="4" rx="2" className="stroke-primary" strokeWidth="1.2" fill="none" />
-        <line x1="14" y1="40" x2="14" y2="48" className="stroke-primary" strokeWidth="1.2" />
-      </svg>
-
-      {/* Medical Shield with cross inside - center left */}
-      <svg
-        className="absolute top-[45%] left-[45%] w-10 h-12 opacity-[0.03] dark:opacity-[0.05]"
-        viewBox="0 0 40 48"
-        fill="none"
-        style={{ animation: "med-hover 20s ease-in-out infinite 6s" }}
-      >
-        <path d="M20 2 L36 10 L36 24 C36 36 20 46 20 46 C20 46 4 36 4 24 L4 10 Z" className="stroke-primary" strokeWidth="1.2" fill="none" />
-        <line x1="20" y1="12" x2="20" y2="36" className="stroke-primary" strokeWidth="1.5" />
-        <line x1="10" y1="24" x2="30" y2="24" className="stroke-primary" strokeWidth="1.5" />
-      </svg>
-
-      {/* Band-Aid - bottom left corner floating */}
-      <svg
-        className="absolute bottom-[15%] left-[30%] w-14 h-6 opacity-[0.04] dark:opacity-[0.06]"
-        viewBox="0 0 56 24"
-        fill="none"
-        style={{ animation: "med-float-slow 19s ease-in-out infinite 2s" }}
-      >
-        <rect x="2" y="4" width="52" height="16" rx="8" className="stroke-primary" strokeWidth="1.2" fill="none" />
-        <rect x="6" y="6" width="14" height="12" rx="4" className="fill-primary" opacity="0.3" />
-        <rect x="36" y="6" width="14" height="12" rx="4" className="fill-primary" opacity="0.3" />
-        <circle cx="24" cy="10" r="1.2" className="fill-primary" opacity="0.4" />
-        <circle cx="28" cy="14" r="1.2" className="fill-primary" opacity="0.4" />
-        <circle cx="24" cy="18" r="1.2" className="fill-primary" opacity="0.4" />
-        <circle cx="32" cy="10" r="1.2" className="fill-primary" opacity="0.4" />
-        <circle cx="28" cy="6" r="1.2" className="fill-primary" opacity="0.4" />
-      </svg>
-
-      {/* Pulse Oximeter Wave - bottom right */}
-      <svg
-        className="absolute bottom-[5%] right-[5%] w-56 h-10 opacity-[0.04] dark:opacity-[0.06]"
-        viewBox="0 0 220 40"
-        fill="none"
-        style={{ animation: "med-hover 14s ease-in-out infinite 1s" }}
-      >
-        <path
-          d="M0 30 Q20 30 40 30 Q50 30 55 28 Q60 20 65 28 Q70 30 80 30 Q90 30 100 30 Q110 30 115 25 Q120 10 125 30 Q130 32 140 30 Q160 30 180 30 Q190 30 195 27 Q200 18 205 30 Q210 32 220 30"
+          d="M0 30 L120 30 L140 30 L155 12 L165 48 L175 8 L185 52 L195 30 L220 30 L250 30 L270 22 L285 38 L300 25 L320 35 L350 30 L500 30"
           stroke="currentColor"
           strokeWidth="1.5"
           strokeLinecap="round"
+          strokeLinejoin="round"
           className="text-primary"
           style={{
-            strokeDasharray: "400",
-            animation: "ecg-pulse 6s linear infinite 2s",
+            strokeDasharray: "700",
+            animation: "ecg-draw 8s linear infinite 2s",
           }}
         />
       </svg>
 
-      {/* Small Heart drifting up from bottom right */}
-      <svg
-        className="absolute bottom-0 right-[35%] w-6 h-6 opacity-[0.04] dark:opacity-[0.06]"
-        viewBox="0 0 24 24"
-        fill="none"
-        style={{ animation: "med-drift-up 45s linear infinite 12s" }}
-      >
-        <path d="M12 21 L3 13 C0 10 0 5 3 3 C5 1.5 9 1.5 12 5 C15 1.5 19 1.5 21 3 C24 5 24 10 21 13 Z" className="fill-primary" />
-      </svg>
+      {/* ====== LAYER 5: Floating Micro Particles ====== */}
+      {/* Tiny glowing dots that drift slowly */}
 
-      {/* Small Medical Cross drifting down from top */}
-      <svg
-        className="absolute top-0 left-[55%] w-6 h-6 opacity-[0.03] dark:opacity-[0.05]"
-        viewBox="0 0 40 40"
-        fill="none"
-        style={{ animation: "med-drift-down 50s linear infinite 15s" }}
-      >
-        <path d="M16 6 H24 V16 H34 V24 H24 V34 H16 V24 H6 V16 H16 Z" className="fill-primary" />
-      </svg>
+      {/* Particle group 1 - top area */}
+      <div className="absolute top-[15%] left-[25%] w-1 h-1 rounded-full bg-primary/20 dark:bg-primary/30" style={{ animation: "particle-float 15s ease-in-out infinite" }} />
+      <div className="absolute top-[20%] left-[60%] w-1.5 h-1.5 rounded-full bg-primary/15 dark:bg-primary/25" style={{ animation: "particle-float 18s ease-in-out infinite 3s" }} />
+      <div className="absolute top-[30%] left-[45%] w-1 h-1 rounded-full bg-primary/20 dark:bg-primary/30" style={{ animation: "particle-float 20s ease-in-out infinite 7s" }} />
+      <div className="absolute top-[12%] left-[80%] w-1 h-1 rounded-full bg-primary/15 dark:bg-primary/20" style={{ animation: "particle-float 16s ease-in-out infinite 10s" }} />
 
-      {/* Blood Pressure Cuff - center left floating */}
-      <svg
-        className="absolute top-[70%] left-[5%] w-10 h-10 opacity-[0.03] dark:opacity-[0.05]"
-        viewBox="0 0 40 40"
-        fill="none"
-        style={{ animation: "med-hover 24s ease-in-out infinite 4s" }}
-      >
-        <path d="M8 8 Q8 2 20 2 Q32 2 32 8 L32 28 Q32 36 20 36 Q8 36 8 28 Z" className="stroke-primary" strokeWidth="1.2" fill="none" />
-        <circle cx="20" cy="14" r="6" className="stroke-primary" strokeWidth="1" fill="none" opacity="0.5" />
-        <line x1="20" y1="14" x2="23" y2="10" className="stroke-primary" strokeWidth="0.8" opacity="0.5" />
-        <path d="M20 36 L20 40" className="stroke-primary" strokeWidth="1" opacity="0.4" />
-      </svg>
+      {/* Particle group 2 - middle area */}
+      <div className="absolute top-[50%] left-[10%] w-1.5 h-1.5 rounded-full bg-primary/15 dark:bg-primary/25" style={{ animation: "particle-float 17s ease-in-out infinite 2s" }} />
+      <div className="absolute top-[55%] left-[75%] w-1 h-1 rounded-full bg-primary/20 dark:bg-primary/30" style={{ animation: "particle-float 22s ease-in-out infinite 5s" }} />
+      <div className="absolute top-[65%] left-[35%] w-1 h-1 rounded-full bg-primary/10 dark:bg-primary/20" style={{ animation: "particle-float 19s ease-in-out infinite 9s" }} />
+      <div className="absolute top-[45%] left-[90%] w-1.5 h-1.5 rounded-full bg-primary/15 dark:bg-primary/20" style={{ animation: "particle-float 21s ease-in-out infinite 12s" }} />
+
+      {/* Particle group 3 - bottom area */}
+      <div className="absolute top-[75%] left-[20%] w-1 h-1 rounded-full bg-primary/15 dark:bg-primary/25" style={{ animation: "particle-float 16s ease-in-out infinite 4s" }} />
+      <div className="absolute top-[85%] left-[55%] w-1.5 h-1.5 rounded-full bg-primary/10 dark:bg-primary/20" style={{ animation: "particle-float 23s ease-in-out infinite 8s" }} />
+      <div className="absolute top-[80%] left-[85%] w-1 h-1 rounded-full bg-primary/15 dark:bg-primary/25" style={{ animation: "particle-float 18s ease-in-out infinite 1s" }} />
+      <div className="absolute top-[90%] left-[40%] w-1 h-1 rounded-full bg-primary/10 dark:bg-primary/15" style={{ animation: "particle-float 20s ease-in-out infinite 11s" }} />
+
+      {/* ====== LAYER 6: Vignette Edge Gradient ====== */}
+      {/* Subtle darkening at edges for depth */}
+      <div
+        className="absolute inset-0 dark:opacity-100 opacity-0"
+        style={{
+          background: "radial-gradient(ellipse 70% 70% at 50% 50%, transparent 50%, oklch(0 0 0 / 0.06) 100%)",
+        }}
+      />
     </div>
   );
 }
