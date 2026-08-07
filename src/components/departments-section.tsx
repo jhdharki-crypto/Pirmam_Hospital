@@ -6,7 +6,8 @@
 
 "use client";
 
-import { motion } from "framer-motion";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import {
   HeartPulse,
@@ -55,6 +56,7 @@ import {
   Smile,
   Laugh,
   PillBottle,
+  ChevronDown,
   type LucideIcon,
 } from "lucide-react";
 import { useContent } from "@/lib/content-store";
@@ -143,9 +145,19 @@ const cardVariants = {
 
 export function DepartmentsSection() {
   const { departments, getSetting } = useContent();
+  const [expandedIds, setExpandedIds] = useState<Set<number>>(new Set());
 
   const sectionTitle = getSetting("deptSectionTitle");
   const sectionDescription = getSetting("deptSectionDesc");
+
+  const toggleExpand = (id: number) => {
+    setExpandedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   return (
     <section id="departments" className="relative py-20 sm:py-28">
@@ -182,7 +194,8 @@ export function DepartmentsSection() {
                 whileInView="visible"
                 viewport={{ once: true, margin: "-50px" }}
                 transition={{ delay: index * 0.05 }}
-                className="group relative glass rounded-2xl overflow-hidden hover:shadow-xl hover:shadow-primary/10 transition-all duration-300 cursor-default"
+                className="group relative glass rounded-2xl overflow-hidden hover:shadow-xl hover:shadow-primary/10 transition-all duration-300 cursor-pointer"
+                onClick={() => toggleExpand(dept.id)}
               >
                 {/* Department image or icon */}
                 {dept.image ? (
@@ -209,11 +222,45 @@ export function DepartmentsSection() {
                   </div>
                 )}
 
-                {/* Description */}
+                {/* Description with expand/collapse */}
                 <div className={dept.image ? "p-4 sm:p-5 pt-0" : "px-5 sm:px-6 pb-5 sm:pb-6 -mt-1"}>
-                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-                    {dept.description}
-                  </p>
+                  {/* Collapsed: show 2 lines truncated */}
+                  <div className={expandedIds.has(dept.id) ? "hidden" : ""}>
+                    <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed line-clamp-2">
+                      {dept.description}
+                    </p>
+                  </div>
+
+                  {/* Expanded: show full description with smooth animation */}
+                  <AnimatePresence>
+                    {expandedIds.has(dept.id) && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.3, ease: "easeInOut" }}
+                        style={{ overflow: "hidden" }}
+                      >
+                        <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                          {dept.description}
+                        </p>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  {/* Expand/collapse toggle button */}
+                  <button
+                    className="mt-2 flex items-center gap-1 text-primary text-xs font-medium hover:underline focus:outline-none"
+                    tabIndex={-1}
+                  >
+                    <span>{expandedIds.has(dept.id) ? "کەمتر بخوێنەوە" : "زیاتر بخوێنەوە"}</span>
+                    <motion.span
+                      animate={{ rotate: expandedIds.has(dept.id) ? 180 : 0 }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <ChevronDown className="w-3.5 h-3.5" />
+                    </motion.span>
+                  </button>
                 </div>
 
                 {/* Subtle corner decoration */}

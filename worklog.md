@@ -238,3 +238,25 @@ Stage Summary:
 - New icons cover every major body part, organ, and hospital department
 - Files updated: departments-section.tsx, admin-panel.tsx
 ---
+Task ID: 7
+Agent: main
+Task: Add expand/collapse feature to department cards
+
+Work Log:
+- Added useState hook to track which department IDs are expanded (Set<number>)
+- Added toggleExpand function to switch expanded state per card
+- Changed card cursor from "cursor-default" to "cursor-pointer" with onClick handler
+- Collapsed state: description truncated to 2 lines using line-clamp-2
+- Expanded state: full description shown with smooth framer-motion animation (height: 0 → auto, opacity fade)
+- Added "زیاتر بخوێنەوە" (Read more) / "کەمتر بخوێنەوە" (Read less) toggle button with animated ChevronDown icon
+- Added ChevronDown import from lucide-react
+- Added AnimatePresence for smooth expand/collapse transitions
+- Verified in browser: cards expand/collapse correctly, button text toggles, chevron rotates, other cards stay collapsed
+- Lint passes clean, zero errors
+
+Stage Summary:
+- Each department card now expands on click to show full description
+- Smooth animated transitions (0.3s easeInOut) for expand and collapse
+- Button text in Kurdish: "زیاتر بخوێنەوە" / "کەمتر بخوێنەوە"
+- ChevronDown icon rotates 180° when expanded
+---
