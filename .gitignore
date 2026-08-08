@@ -32,6 +32,7 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
 
 # vercel
 .vercel
@@ -57,3 +58,22 @@ server.log
 
 # Skills directory
 /skills/
+
+# Uploaded files (stored in Vercel Blob in production)
+/public/uploads/
+
+# Mini services
+/mini-services/
+
+# Screenshots and tool results
+*.png
+!public/logo.png
+!public/logo.svg
+/tool-results/
+/download/
+/bg-*.png
+/dept-*.png
+/archive-section.png
+/icons-check.png
+gallery-check.png
+upload/
