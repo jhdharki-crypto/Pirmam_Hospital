@@ -260,3 +260,26 @@ Stage Summary:
 - Button text in Kurdish: "زیاتر بخوێنەوە" / "کەمتر بخوێنەوە"
 - ChevronDown icon rotates 180° when expanded
 ---
+Task ID: 8
+Agent: main
+Task: Fix gallery image uploading
+
+Work Log:
+- Identified root cause: `/api/admin/upload/route.ts` was completely missing (404 on all upload attempts)
+- Recreated the upload route with full functionality:
+  - Accepts multipart FormData with "file" and "folder" fields
+  - Validates file type (jpeg, png, gif, webp, svg, bmp)
+  - Validates file size (max 10MB)
+  - Generates unique filenames (timestamp + random string) to avoid collisions
+  - Creates upload directory if it doesn't exist
+  - Writes file to `public/uploads/{folder}/`
+  - Returns JSON with public URL path
+- Tested upload API with curl: successfully uploaded test image and received valid URL
+- Verified uploaded file exists on disk
+- Lint passes clean, no errors in dev log
+
+Stage Summary:
+- Upload API route restored at `src/app/api/admin/upload/route.ts`
+- Gallery, departments, and archive image uploads all work again
+- Upload tested and confirmed working via curl
+---
