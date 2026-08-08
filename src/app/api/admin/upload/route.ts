@@ -1,6 +1,8 @@
 /* =============================================
    Pirmam Hospital - Image Upload API
    Handles file uploads for gallery, departments, archive
+   Production: uses Vercel Blob (cloud storage)
+   Development: uses local filesystem (public/uploads/)
    ============================================= */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -39,23 +41,37 @@ export async function POST(request: NextRequest) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    /* Generate unique filename to avoid collisions */
+    /* Generate unique filename */
     const ext = path.extname(file.name) || ".png";
     const uniqueName = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}${ext}`;
 
-    /* Ensure upload directory exists */
-    const uploadDir = path.join(process.cwd(), "public", "uploads", folder);
-    await mkdir(uploadDir, { recursive: true });
+    /* Check if Vercel Blob is available (production) */
+    const isVercelBlobAvailable = !!process.env.BLOB_READ_WRITE_TOKEN;
 
-    /* Write file to disk */
-    const filePath = path.join(uploadDir, uniqueName);
-    await writeFile(filePath, buffer);
+    if (isVercelBlobAvailable) {
+      /* === PRODUCTION: Use Vercel Blob (cloud storage) === */
+      const { put } = await import("@vercel/blob");
+      const blob = await put(`uploads/${folder}/${uniqueName}`, buffer, {
+        access: "public",
+        contentType: file.type,
+      });
 
-    /* Return the public URL path */
-    return NextResponse.json({
-      url: `/uploads/${folder}/${uniqueName}`,
-      name: uniqueName,
-    });
+      return NextResponse.json({
+        url: blob.url,
+        name: uniqueName,
+      });
+    } else {
+      /* === DEVELOPMENT: Use local filesystem === */
+      const uploadDir = path.join(process.cwd(), "public", "uploads", folder);
+      await mkdir(uploadDir, { recursive: true });
+      const filePath = path.join(uploadDir, uniqueName);
+      await writeFile(filePath, buffer);
+
+      return NextResponse.json({
+        url: `/uploads/${folder}/${uniqueName}`,
+        name: uniqueName,
+      });
+    }
   } catch (error) {
     console.error("Error uploading file:", error);
     return NextResponse.json({ error: "Failed to upload file" }, { status: 500 });
