@@ -1971,21 +1971,6 @@ export function AdminPanel() {
                 value={settings.facebookUrl || ""}
                 onChange={(v) => updateSetting("facebookUrl", v)}
               />
-              <SettingsField
-                label="ئینستاگرام"
-                value={settings.instagramUrl || ""}
-                onChange={(v) => updateSetting("instagramUrl", v)}
-              />
-              <SettingsField
-                label="تویتەر (X)"
-                value={settings.twitterUrl || ""}
-                onChange={(v) => updateSetting("twitterUrl", v)}
-              />
-              <SettingsField
-                label="یوتیوب"
-                value={settings.youtubeUrl || ""}
-                onChange={(v) => updateSetting("youtubeUrl", v)}
-              />
             </CardContent>
           </Card>
 

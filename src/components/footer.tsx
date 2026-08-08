@@ -14,9 +14,6 @@ import {
 } from "lucide-react";
 import {
   Facebook,
-  Instagram,
-  Twitter,
-  Youtube,
 } from "lucide-react";
 import Image from "next/image";
 import { useContent } from "@/lib/content-store";
@@ -32,18 +29,12 @@ export function Footer() {
   const addressKu = getSetting("addressKu");
   const workingHours = getSetting("workingHours");
   const facebookUrl = getSetting("facebookUrl");
-  const instagramUrl = getSetting("instagramUrl");
-  const twitterUrl = getSetting("twitterUrl");
-  const youtubeUrl = getSetting("youtubeUrl");
   const footerDescription = getSetting("footerDescription");
 
   const phoneNumbers = [phone1, phone2].filter(Boolean);
 
   const socialLinks = [
     { icon: Facebook, href: facebookUrl || "#", label: "فەیسبووک" },
-    { icon: Instagram, href: instagramUrl || "#", label: "ئینستاگرام" },
-    { icon: Twitter, href: twitterUrl || "#", label: "تویتەر" },
-    { icon: Youtube, href: youtubeUrl || "#", label: "یوتیووب" },
   ];
 
   return (
