@@ -6,8 +6,6 @@
    ============================================= */
 
 import { NextRequest, NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
 
 export async function POST(request: NextRequest) {
   try {
@@ -29,7 +27,7 @@ export async function POST(request: NextRequest) {
       "image/bmp",
     ];
     if (!allowedTypes.includes(file.type)) {
-      return NextResponse.json({ error: "Invalid file type. Only images are allowed." }, { status: 400 });
+      return NextResponse.json({ error: "Invalid file type: " + file.type + ". Only images are allowed." }, { status: 400 });
     }
 
     /* Validate file size (max 10MB) */
@@ -42,13 +40,13 @@ export async function POST(request: NextRequest) {
     const buffer = Buffer.from(bytes);
 
     /* Generate unique filename */
-    const ext = path.extname(file.name) || ".png";
-    const uniqueName = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}${ext}`;
+    const ext = file.name.split('.').pop() || "png";
+    const uniqueName = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${ext}`;
 
     /* Check if Vercel Blob is available (production) */
-    const isVercelBlobAvailable = !!process.env.BLOB_READ_WRITE_TOKEN;
+    const blobToken = process.env.BLOB_READ_WRITE_TOKEN;
 
-    if (isVercelBlobAvailable) {
+    if (blobToken) {
       /* === PRODUCTION: Use Vercel Blob (cloud storage) === */
       const { put } = await import("@vercel/blob");
       const blob = await put(`uploads/${folder}/${uniqueName}`, buffer, {
@@ -62,9 +60,11 @@ export async function POST(request: NextRequest) {
       });
     } else {
       /* === DEVELOPMENT: Use local filesystem === */
-      const uploadDir = path.join(process.cwd(), "public", "uploads", folder);
+      const { writeFile, mkdir } = await import("fs/promises");
+      const pathModule = await import("path");
+      const uploadDir = pathModule.join(process.cwd(), "public", "uploads", folder);
       await mkdir(uploadDir, { recursive: true });
-      const filePath = path.join(uploadDir, uniqueName);
+      const filePath = pathModule.join(uploadDir, uniqueName);
       await writeFile(filePath, buffer);
 
       return NextResponse.json({
@@ -74,6 +74,7 @@ export async function POST(request: NextRequest) {
     }
   } catch (error) {
     console.error("Error uploading file:", error);
-    return NextResponse.json({ error: "Failed to upload file" }, { status: 500 });
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    return NextResponse.json({ error: "Upload failed: " + errorMessage }, { status: 500 });
   }
 }
