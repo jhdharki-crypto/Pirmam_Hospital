@@ -109,10 +109,10 @@ export function Footer() {
             </div>
           </div>
 
-          {/* Column 4: Social Media */}
+          {/* Column 4: Social Media + QR Code */}
           <div>
             <h3 className="font-bold text-foreground mb-4 text-sm">تۆڕە کۆمەڵایەتیەکان</h3>
-            <div className="flex gap-3 flex-wrap">
+            <div className="flex gap-3 flex-wrap mb-5">
               {socialLinks.map((social, index) => (
                 <a
                   key={index}
@@ -125,6 +125,20 @@ export function Footer() {
                   <social.icon className="w-4 h-4 group-hover:scale-110 transition-transform" />
                 </a>
               ))}
+            </div>
+
+            {/* QR Code */}
+            <div className="flex flex-col items-center">
+              <div className="p-2 bg-white rounded-xl border border-border/50 shadow-sm">
+                <Image
+                  src="/qr-code.svg"
+                  alt="QR Code - نەخۆشخانەی پیرمام"
+                  width={90}
+                  height={90}
+                  className="w-[90px] h-[90px]"
+                />
+              </div>
+              <span className="text-[10px] text-muted-foreground mt-1.5">سکان بکە بۆ چوونە ماڵپەڕ</span>
             </div>
           </div>
         </div>
