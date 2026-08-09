@@ -674,13 +674,25 @@ export function AdminPanel() {
      IMAGE UPLOAD
      ============================ */
 
-  /* Convert a file to base64 data URL in the browser (no server needed) */
-  function fileToBase64(file: File): Promise<string> {
+  /* Compress image in browser using Canvas - makes any image small enough for API */
+  function compressImage(file: File, maxW = 800, maxH = 600, quality = 0.6): Promise<string> {
     return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = () => reject(new Error("Failed to read file"));
-      reader.readAsDataURL(file);
+      const img = new window.Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        let w = img.width;
+        let h = img.height;
+        if (w > maxW) { h = (h * maxW) / w; w = maxW; }
+        if (h > maxH) { w = (w * maxH) / h; h = maxH; }
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext("2d")!;
+        ctx.drawImage(img, 0, 0, w, h);
+        const dataUrl = canvas.toDataURL("image/jpeg", quality);
+        resolve(dataUrl);
+      };
+      img.onerror = () => reject(new Error("Failed to load image"));
+      img.src = URL.createObjectURL(file);
     });
   }
 
@@ -692,16 +704,16 @@ export function AdminPanel() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    /* Check file size (max 4MB) */
-    if (file.size > 4 * 1024 * 1024) {
-      toast.error("فایلی زۆر گەورەیە. maxim 4MB");
+    /* Check file size (max 10MB input - will be compressed) */
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("فایلی زۆر گەورەیە. maxim 10MB");
       e.target.value = "";
       return;
     }
 
     try {
-      /* Convert to base64 directly in the browser */
-      const url = await fileToBase64(file);
+      /* Compress image in browser to small JPEG */
+      const url = await compressImage(file);
 
       /* Update local state first for instant preview */
       if (type === "department") {
@@ -1533,13 +1545,13 @@ export function AdminPanel() {
         const file = files[i];
 
         /* Check file size */
-        if (file.size > 4 * 1024 * 1024) {
-          toast.error(`فایلی ${file.name} زۆر گەورەیە (max 4MB)`);
+        if (file.size > 10 * 1024 * 1024) {
+          toast.error(`فایلی ${file.name} زۆر گەورەیە (max 10MB)`);
           continue;
         }
 
-        /* Convert to base64 directly in the browser */
-        const url = await fileToBase64(file);
+        /* Compress image in browser to small JPEG */
+        const url = await compressImage(file);
 
         /* Save image to database via archive-images API */
         if (!item.id.startsWith("new-")) {

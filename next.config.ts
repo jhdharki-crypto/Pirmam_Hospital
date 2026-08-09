@@ -6,20 +6,13 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   reactStrictMode: false,
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "10mb",
+    },
+  },
   images: {
-    remotePatterns: [
-      /* Vercel Blob storage URLs */
-      {
-        protocol: "https",
-        hostname: "**.blob.vercel-storage.com",
-      },
-      /* Public uploads in production */
-      {
-        protocol: "https",
-        hostname: "**.vercel.app",
-        pathname: "/uploads/**",
-      },
-    ],
+    unoptimized: true,
   },
 };
 
