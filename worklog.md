@@ -283,3 +283,32 @@ Stage Summary:
 - Gallery, departments, and archive image uploads all work again
 - Upload tested and confirmed working via curl
 ---
+---
+Task ID: deploy
+Agent: Main
+Task: Deploy Pirmam Hospital website to production (Vercel + Neon)
+
+Work Log:
+- Switched Prisma schema from SQLite to PostgreSQL for production
+- Added postinstall script for prisma generate in package.json
+- Created .env.example with DATABASE_URL and BLOB_READ_WRITE_TOKEN
+- Updated .gitignore for production (exclude uploads, screenshots, tool-results)
+- Removed unused social media fields from seed data (kept Facebook only)
+- Guided user through: GitHub repo creation → token generation → code push
+- Guided user through: Vercel signup → project import → deploy
+- Guided user through: Neon PostgreSQL signup → database creation
+- Set DATABASE_URL environment variable on Vercel
+- Pushed Prisma schema and seeded 54 items to Neon database
+- Fixed upload route: converted from filesystem/blob to base64 encoding
+  - Images are compressed with sharp before base64 encoding
+  - Max 4MB input, resized to 1200x900, JPEG quality 80
+  - No external storage needed (no Vercel Blob required)
+- Replaced next/image with img tag in departments section for base64 compatibility
+- Verified live upload API works (both small and large images)
+
+Stage Summary:
+- Website live at: https://pirmam-hospital-78qk.vercel.app
+- GitHub repo: https://github.com/jhdharki-crypto/Pirmam_Hospital
+- Database: Neon PostgreSQL (Amsterdam, EU-West)
+- Image uploads: base64 in database (no external storage)
+- Admin panel password: pirmam2025
