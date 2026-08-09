@@ -674,26 +674,49 @@ export function AdminPanel() {
      IMAGE UPLOAD
      ============================ */
 
-  /* Compress image in browser using Canvas - makes any image small enough for API */
-  function compressImage(file: File, maxW = 800, maxH = 600, quality = 0.6): Promise<string> {
+  /* Convert file to base64 - with canvas compression as primary, FileReader as fallback */
+  function fileToBase64(file: File): Promise<string> {
     return new Promise((resolve, reject) => {
-      const img = new window.Image();
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        let w = img.width;
-        let h = img.height;
-        if (w > maxW) { h = (h * maxW) / w; w = maxW; }
-        if (h > maxH) { w = (w * maxH) / h; h = maxH; }
-        canvas.width = w;
-        canvas.height = h;
-        const ctx = canvas.getContext("2d")!;
-        ctx.drawImage(img, 0, 0, w, h);
-        const dataUrl = canvas.toDataURL("image/jpeg", quality);
-        resolve(dataUrl);
-      };
-      img.onerror = () => reject(new Error("Failed to load image"));
-      img.src = URL.createObjectURL(file);
+      /* Try canvas compression first (smaller output) */
+      try {
+        const img = new (window as any).Image();
+        img.onload = () => {
+          try {
+            const canvas = document.createElement("canvas");
+            let w = img.width, h = img.height;
+            if (w > 800) { h = (h * 800) / w; w = 800; }
+            if (h > 600) { w = (w * 600) / h; h = 600; }
+            canvas.width = w; canvas.height = h;
+            const ctx = canvas.getContext("2d");
+            if (ctx) {
+              ctx.drawImage(img, 0, 0, w, h);
+              const result = canvas.toDataURL("image/jpeg", 0.6);
+              URL.revokeObjectURL(img.src);
+              resolve(result);
+            } else {
+              URL.revokeObjectURL(img.src);
+              readAsDataURL(file, resolve, reject);
+            }
+          } catch {
+            URL.revokeObjectURL(img.src);
+            readAsDataURL(file, resolve, reject);
+          }
+        };
+        img.onerror = () => {
+          readAsDataURL(file, resolve, reject);
+        };
+        img.src = URL.createObjectURL(file);
+      } catch {
+        readAsDataURL(file, resolve, reject);
+      }
     });
+  }
+
+  function readAsDataURL(file: File, resolve: (v: string) => void, reject: (e: Error) => void) {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(new Error("Failed to read file"));
+    reader.readAsDataURL(file);
   }
 
   async function handleImageUpload(
@@ -712,8 +735,8 @@ export function AdminPanel() {
     }
 
     try {
-      /* Compress image in browser to small JPEG */
-      const url = await compressImage(file);
+      /* Convert to base64 in browser */
+      const url = await fileToBase64(file);
 
       /* Update local state first for instant preview */
       if (type === "department") {
@@ -1550,8 +1573,8 @@ export function AdminPanel() {
           continue;
         }
 
-        /* Compress image in browser to small JPEG */
-        const url = await compressImage(file);
+        /* Convert to base64 in browser */
+        const url = await fileToBase64(file);
 
         /* Save image to database via archive-images API */
         if (!item.id.startsWith("new-")) {
