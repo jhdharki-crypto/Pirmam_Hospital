@@ -47,7 +47,7 @@ const DEFAULT_SETTINGS: Record<string, string> = {
   navLabelDepartments: "بەشەکان",
   navLabelGallery: "گەلەری",
   navLabelArchive: "ئەرشیف و هەواڵی نەخۆشخانە",
-  adminPassword: "pirmam2025",
+  adminPassword: "jihadpirmam223355",
 };
 
 const DEFAULT_DEPARTMENTS = [
