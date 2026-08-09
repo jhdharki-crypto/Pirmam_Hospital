@@ -674,6 +674,16 @@ export function AdminPanel() {
      IMAGE UPLOAD
      ============================ */
 
+  /* Convert a file to base64 data URL in the browser (no server needed) */
+  function fileToBase64(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = () => reject(new Error("Failed to read file"));
+      reader.readAsDataURL(file);
+    });
+  }
+
   async function handleImageUpload(
     e: React.ChangeEvent<HTMLInputElement>,
     type: "department" | "gallery",
@@ -682,106 +692,95 @@ export function AdminPanel() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("folder", type === "department" ? "departments" : type);
+    /* Check file size (max 4MB) */
+    if (file.size > 4 * 1024 * 1024) {
+      toast.error("فایلی زۆر گەورەیە. maxim 4MB");
+      e.target.value = "";
+      return;
+    }
 
     try {
-      const res = await fetch("/api/admin/upload", {
-        method: "POST",
-        body: formData,
-      });
-      if (res.ok) {
-        const data = await res.json();
-        const url = data.url;
+      /* Convert to base64 directly in the browser */
+      const url = await fileToBase64(file);
 
-        /* Update local state first for instant preview */
-        if (type === "department") {
-          const item = departments[index];
-          setDepartments((prev) =>
-            prev.map((d, i) => (i === index ? { ...d, image: url } : d))
-          );
-          /* Auto-save to database - if new item, create it first */
-          if (item) {
-            if (item.id.startsWith("new-")) {
-              const createRes = await fetch("/api/admin/departments", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  name: item.name || `بەش ${index + 1}`,
-                  description: item.description || "",
-                  iconName: item.iconName || "HeartPulse",
-                  image: url,
-                  order: item.order ?? index,
-                }),
-              });
-              if (createRes.ok) {
-                const created = await createRes.json();
-                setDepartments((prev) =>
-                  prev.map((d, i) =>
-                    i === index ? { ...d, id: created.id, image: url } : d
-                  )
-                );
-              }
-            } else {
-              await fetch("/api/admin/departments", {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ ...item, image: url }),
-              });
+      /* Update local state first for instant preview */
+      if (type === "department") {
+        const item = departments[index];
+        setDepartments((prev) =>
+          prev.map((d, i) => (i === index ? { ...d, image: url } : d))
+        );
+        /* Auto-save to database */
+        if (item) {
+          if (item.id.startsWith("new-")) {
+            const createRes = await fetch("/api/admin/departments", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                name: item.name || `بەش ${index + 1}`,
+                description: item.description || "",
+                iconName: item.iconName || "HeartPulse",
+                image: url,
+                order: item.order ?? index,
+              }),
+            });
+            if (createRes.ok) {
+              const created = await createRes.json();
+              setDepartments((prev) =>
+                prev.map((d, i) =>
+                  i === index ? { ...d, id: created.id, image: url } : d
+                )
+              );
             }
-          }
-        } else if (type === "gallery") {
-          const item = galleryItems[index];
-          setGalleryItems((prev) =>
-            prev.map((g, i) => (i === index ? { ...g, image: url } : g))
-          );
-          /* Auto-save to database - if new item, create it first */
-          if (item) {
-            if (item.id.startsWith("new-")) {
-              /* Create the item in DB first, then update local state with real ID */
-              const createRes = await fetch("/api/admin/gallery", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  title: item.title || `گەلەری ${index + 1}`,
-                  description: item.description || "",
-                  image: url,
-                  color: item.color || "from-teal-600/80 to-emerald-700/80",
-                  order: item.order ?? index,
-                }),
-              });
-              if (createRes.ok) {
-                const created = await createRes.json();
-                /* Replace the temp ID with the real one from DB */
-                setGalleryItems((prev) =>
-                  prev.map((g, i) =>
-                    i === index ? { ...g, id: created.id, image: url } : g
-                  )
-                );
-              }
-            } else {
-              /* Existing item - just update the image */
-              await fetch("/api/admin/gallery", {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ ...item, image: url }),
-              });
-            }
+          } else {
+            await fetch("/api/admin/departments", {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ ...item, image: url }),
+            });
           }
         }
-
-        /* Refresh public-facing site content */
-        await refetch();
-        toast.success("وێنەکە بارکرا و تۆمارکرا");
-      } else {
-        toast.error("هەڵەیەک ڕوویدا لە بارکردنی وێنە");
+      } else if (type === "gallery") {
+        const item = galleryItems[index];
+        setGalleryItems((prev) =>
+          prev.map((g, i) => (i === index ? { ...g, image: url } : g))
+        );
+        if (item) {
+          if (item.id.startsWith("new-")) {
+            const createRes = await fetch("/api/admin/gallery", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                title: item.title || `گەلەری ${index + 1}`,
+                description: item.description || "",
+                image: url,
+                color: item.color || "from-teal-600/80 to-emerald-700/80",
+                order: item.order ?? index,
+              }),
+            });
+            if (createRes.ok) {
+              const created = await createRes.json();
+              setGalleryItems((prev) =>
+                prev.map((g, i) =>
+                  i === index ? { ...g, id: created.id, image: url } : g
+                )
+              );
+            }
+          } else {
+            await fetch("/api/admin/gallery", {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ ...item, image: url }),
+            });
+          }
+        }
       }
+
+      await refetch();
+      toast.success("وێنەکە بارکرا و تۆمارکرا");
     } catch {
       toast.error("هەڵەیەک ڕوویدا لە بارکردنی وێنە");
     }
 
-    /* Reset file input */
     e.target.value = "";
   }
 
@@ -1532,47 +1531,43 @@ export function AdminPanel() {
     try {
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
-        const formData = new FormData();
-        formData.append("file", file);
-        formData.append("folder", "archive");
 
-        const res = await fetch("/api/admin/upload", {
-          method: "POST",
-          body: formData,
-        });
-
-        if (res.ok) {
-          const data = await res.json();
-          const url = data.url;
-
-          /* Save image to database via archive-images API */
-          if (!item.id.startsWith("new-")) {
-            await fetch("/api/admin/archive-images", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                archiveItemId: item.id,
-                url,
-                order: (item.images?.length || 0) + i,
-              }),
-            });
-          }
-
-          /* Update local state */
-          const newImage: ArchiveImage = {
-            id: `temp-${Date.now()}-${i}`,
-            url,
-            order: (item.images?.length || 0) + i,
-            archiveItemId: item.id,
-          };
-          setArchiveItems((prev) =>
-            prev.map((a, idx) =>
-              idx === archiveIdx
-                ? { ...a, images: [...(a.images || []), newImage] }
-                : a
-            )
-          );
+        /* Check file size */
+        if (file.size > 4 * 1024 * 1024) {
+          toast.error(`فایلی ${file.name} زۆر گەورەیە (max 4MB)`);
+          continue;
         }
+
+        /* Convert to base64 directly in the browser */
+        const url = await fileToBase64(file);
+
+        /* Save image to database via archive-images API */
+        if (!item.id.startsWith("new-")) {
+          await fetch("/api/admin/archive-images", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              archiveItemId: item.id,
+              url,
+              order: (item.images?.length || 0) + i,
+            }),
+          });
+        }
+
+        /* Update local state */
+        const newImage: ArchiveImage = {
+          id: `temp-${Date.now()}-${i}`,
+          url,
+          order: (item.images?.length || 0) + i,
+          archiveItemId: item.id,
+        };
+        setArchiveItems((prev) =>
+          prev.map((a, idx) =>
+            idx === archiveIdx
+              ? { ...a, images: [...(a.images || []), newImage] }
+              : a
+          )
+        );
       }
 
       await refetch();
