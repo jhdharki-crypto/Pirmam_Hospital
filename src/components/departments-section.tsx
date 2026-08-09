@@ -8,7 +8,6 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import Image from "next/image";
 import {
   HeartPulse,
   Brain,
@@ -200,11 +199,10 @@ export function DepartmentsSection() {
                 {/* Department image or icon */}
                 {dept.image ? (
                   <div className="relative aspect-[16/10] overflow-hidden">
-                    <Image
+                    <img
                       src={dept.image}
                       alt={dept.name}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                      className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
                     <h3 className="absolute bottom-3 right-4 text-white text-base sm:text-lg font-bold">
