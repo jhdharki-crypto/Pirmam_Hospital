@@ -1,11 +1,25 @@
 /* =============================================
    Pirmam Hospital - Image Upload API
-   Converts uploaded images to base64 data URLs
-   and stores directly in the database.
+   Compresses and converts uploaded images to base64
    Works everywhere - no external storage needed!
    ============================================= */
 
 import { NextRequest, NextResponse } from "next/server";
+
+/* Maximum dimensions for compressed images */
+const MAX_WIDTH = 1200;
+const MAX_HEIGHT = 900;
+const MAX_FILE_SIZE = 4 * 1024 * 1024; /* 4MB input limit */
+
+/* Allowed image types */
+const ALLOWED_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/gif",
+  "image/webp",
+  "image/svg+xml",
+  "image/bmp",
+]);
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,35 +30,63 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
-    /* Validate file type */
-    const allowedTypes = [
-      "image/jpeg",
-      "image/png",
-      "image/gif",
-      "image/webp",
-      "image/svg+xml",
-      "image/bmp",
-    ];
-    if (!allowedTypes.includes(file.type)) {
+    if (!ALLOWED_TYPES.has(file.type)) {
       return NextResponse.json(
         { error: "Invalid file type. Only images are allowed." },
         { status: 400 }
       );
     }
 
-    /* Validate file size (max 5MB - keeps base64 manageable in database) */
-    if (file.size > 5 * 1024 * 1024) {
+    if (file.size > MAX_FILE_SIZE) {
       return NextResponse.json(
-        { error: "File too large. Maximum size is 5MB." },
+        { error: "File too large. Maximum size is 4MB." },
         { status: 400 }
       );
     }
 
-    /* Convert file to base64 data URL */
+    /* Read file buffer */
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-    const base64 = buffer.toString("base64");
-    const dataUrl = `data:${file.type};base64,${base64}`;
+
+    /* Try to compress with sharp, fallback to raw base64 */
+    let outputBuffer = buffer;
+    let outputType = file.type;
+
+    try {
+      const sharp = (await import("sharp")).default;
+
+      /* Get image metadata */
+      const metadata = await sharp(buffer).metadata();
+
+      /* Resize if too large */
+      let pipeline = sharp(buffer);
+      if (
+        metadata.width &&
+        metadata.width > MAX_WIDTH ||
+        metadata.height &&
+        metadata.height > MAX_HEIGHT
+      ) {
+        pipeline = pipeline.resize(MAX_WIDTH, MAX_HEIGHT, {
+          fit: "inside",
+          withoutEnlargement: true,
+        });
+      }
+
+      /* Convert to JPEG for smaller size (unless it's SVG/GIF) */
+      if (file.type !== "image/svg+xml" && file.type !== "image/gif") {
+        pipeline = pipeline.jpeg({ quality: 80 });
+        outputType = "image/jpeg";
+      }
+
+      outputBuffer = await pipeline.toBuffer();
+    } catch {
+      /* Sharp not available or failed — use raw buffer */
+      console.log("Sharp not available, using raw base64");
+    }
+
+    /* Convert to base64 data URL */
+    const base64 = outputBuffer.toString("base64");
+    const dataUrl = `data:${outputType};base64,${base64}`;
 
     return NextResponse.json({
       url: dataUrl,
