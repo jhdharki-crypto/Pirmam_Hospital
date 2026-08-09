@@ -312,3 +312,22 @@ Stage Summary:
 - Database: Neon PostgreSQL (Amsterdam, EU-West)
 - Image uploads: base64 in database (no external storage)
 - Admin panel password: pirmam2025
+---
+Task ID: upload-fix-final
+Agent: Main
+Task: Fix image upload "nothing happens" issue on live Vercel deployment
+
+Work Log:
+- Identified TWO root causes:
+  1. **Missing Sonner Toaster**: admin-panel.tsx uses `import { toast } from "sonner"` but layout.tsx rendered `<Toaster />` from Radix/shadcn. Sonner toasts were created but NEVER displayed → user saw zero feedback
+  2. **Fragile upload pattern**: Hidden `<input>` + useRef + setTimeout + programmatic `.click()` chain could silently fail. Old `fileToBase64` used `new Image()` + `URL.createObjectURL()` which could hang forever if CSP blocks blob URLs (neither onload nor onerror fires)
+- Fix 1: Replaced Radix Toaster with Sonner Toaster in layout.tsx (`<SonnerToaster position="top-center" richColors closeButton />`)
+- Fix 2: Replaced hidden input + ref + `.click()` pattern with direct `<label>` wrapping `<input type="file" className="sr-only">` — most reliable upload pattern, no refs, no timing issues
+- Fix 3: Simplified `fileToBase64` to use FileReader directly (no canvas/Image/createObjectURL for small files), with `createImageBitmap` compression fallback for larger files
+- Removed unused refs: deptFileRefs, galFileRefs, arcMultiFileRefs, getRefCallback, triggerUpload, hiddenFileInput
+- Lint passes clean
+
+Stage Summary:
+- Two bugs fixed: (1) Sonner toasts now display correctly, (2) upload buttons use bulletproof label+input pattern
+- Changed files: src/components/admin-panel.tsx, src/app/layout.tsx
+- Ready for git push and Vercel redeployment

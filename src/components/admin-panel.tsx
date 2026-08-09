@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import {
@@ -340,12 +340,6 @@ export function AdminPanel() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  /* File input ref maps - each item gets its own input so uploads go to the right place */
-  const deptFileRefs = useRef<Record<number, HTMLInputElement | null>>({});
-  const galFileRefs = useRef<Record<number, HTMLInputElement | null>>({});
-  /* Separate ref map for archive multi-image uploads, keyed by archive item index */
-  const arcMultiFileRefs = useRef<Record<number, HTMLInputElement | null>>({});
-
   /* ============================
      PASSWORD & AUTH
      ============================ */
@@ -674,49 +668,54 @@ export function AdminPanel() {
      IMAGE UPLOAD
      ============================ */
 
-  /* Convert file to base64 - with canvas compression as primary, FileReader as fallback */
+  /* Convert file to base64.
+     Small files (<2MB) → FileReader directly (most reliable).
+     Larger files → compress with createImageBitmap + Canvas to fit within server limits.
+     If compression fails → fall back to FileReader. */
   function fileToBase64(file: File): Promise<string> {
+    if (file.size <= 2 * 1024 * 1024) {
+      return readAsDataURL(file);
+    }
+    return compressThenBase64(file).catch(() => readAsDataURL(file));
+  }
+
+  function readAsDataURL(file: File): Promise<string> {
     return new Promise((resolve, reject) => {
-      /* Try canvas compression first (smaller output) */
-      try {
-        const img = new (window as any).Image();
-        img.onload = () => {
-          try {
-            const canvas = document.createElement("canvas");
-            let w = img.width, h = img.height;
-            if (w > 800) { h = (h * 800) / w; w = 800; }
-            if (h > 600) { w = (w * 600) / h; h = 600; }
-            canvas.width = w; canvas.height = h;
-            const ctx = canvas.getContext("2d");
-            if (ctx) {
-              ctx.drawImage(img, 0, 0, w, h);
-              const result = canvas.toDataURL("image/jpeg", 0.6);
-              URL.revokeObjectURL(img.src);
-              resolve(result);
-            } else {
-              URL.revokeObjectURL(img.src);
-              readAsDataURL(file, resolve, reject);
-            }
-          } catch {
-            URL.revokeObjectURL(img.src);
-            readAsDataURL(file, resolve, reject);
-          }
-        };
-        img.onerror = () => {
-          readAsDataURL(file, resolve, reject);
-        };
-        img.src = URL.createObjectURL(file);
-      } catch {
-        readAsDataURL(file, resolve, reject);
-      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = reader.result as string;
+        if (result && result.startsWith("data:")) {
+          resolve(result);
+        } else {
+          reject(new Error("FileReader did not return a valid data URL"));
+        }
+      };
+      reader.onerror = () => reject(new Error("Failed to read file"));
+      reader.readAsDataURL(file);
     });
   }
 
-  function readAsDataURL(file: File, resolve: (v: string) => void, reject: (e: Error) => void) {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = () => reject(new Error("Failed to read file"));
-    reader.readAsDataURL(file);
+  /* Compress a large image using createImageBitmap + Canvas.
+     Much more reliable than new Image() + URL.createObjectURL */
+  async function compressThenBase64(file: File): Promise<string> {
+    const bitmap = await createImageBitmap(file);
+    try {
+      const canvas = document.createElement("canvas");
+      let w = bitmap.width;
+      let h = bitmap.height;
+      const maxW = 1200;
+      const maxH = 900;
+      if (w > maxW) { h = (h * maxW) / w; w = maxW; }
+      if (h > maxH) { w = (w * maxH) / h; h = maxH; }
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) throw new Error("No 2D context");
+      ctx.drawImage(bitmap, 0, 0, w, h);
+      return canvas.toDataURL("image/jpeg", 0.7);
+    } finally {
+      bitmap.close();
+    }
   }
 
   async function handleImageUpload(
@@ -738,7 +737,7 @@ export function AdminPanel() {
       /* Show loading message immediately */
       toast.loading("بارکردنی وێنە... تکایە چاوەڕوان بە");
 
-      /* Convert to base64 in browser */
+      /* Convert to base64 using simple FileReader */
       const url = await fileToBase64(file);
 
       /* Update loading message */
@@ -828,47 +827,24 @@ export function AdminPanel() {
     e.target.value = "";
   }
 
-  function triggerUpload(type: "department" | "gallery", index: number) {
-    /* Use a short timeout to ensure the file input is mounted before clicking */
-    setTimeout(() => {
-      const refMap =
-        type === "department"
-          ? deptFileRefs
-          : galFileRefs;
-      refMap.current[index]?.click();
-    }, 50);
-  }
-
-  /* Hidden file input - each item gets its own unique input element
-     so that clicking upload on item #1 always uploads to item #1 */
-  function getRefCallback(
-    type: "department" | "gallery",
-    index: number
-  ) {
-    const refMap =
-      type === "department"
-        ? deptFileRefs
-        : galFileRefs;
-    return (el: HTMLInputElement | null) => {
-      refMap.current[index] = el;
-    };
-  }
-
-  const hiddenFileInput = (
-    type: "department" | "gallery",
-    index: number
-  ) => {
+  /* File upload label - renders a visible <label> wrapping a hidden <input type="file">
+     This is the most reliable pattern: no refs, no programmatic .click(), no timing issues */
+  function UploadButton({ type, index, label }: { type: "department" | "gallery"; index: number; label: string }) {
     return (
-      <input
-        key={`${type}-${index}`}
-        ref={getRefCallback(type, index)}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={(e) => handleImageUpload(e, type, index)}
-      />
+      <label className="inline-flex items-center justify-center cursor-pointer">
+        <input
+          type="file"
+          accept="image/*"
+          className="sr-only"
+          onChange={(e) => handleImageUpload(e, type, index)}
+        />
+        <span className="inline-flex items-center gap-1 rounded-md border border-input bg-background px-3 py-1.5 text-xs font-medium ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground">
+          <Upload className="w-3.5 h-3.5" />
+          {label}
+        </span>
+      </label>
     );
-  };
+  }
 
   /* ============================
      HELPER: Update setting
@@ -1272,15 +1248,7 @@ export function AdminPanel() {
                       </div>
                     </div>
                     <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => triggerUpload("department", idx)}
-                        className="text-xs flex-1"
-                      >
-                        <Upload className="w-3.5 h-3.5 ml-1" />
-                        بارکردنی وێنە
-                      </Button>
+                      <UploadButton type="department" index={idx} label="بارکردنی وێنە" />
                       {dept.image && (
                         <Button
                           variant="outline"
@@ -1298,7 +1266,6 @@ export function AdminPanel() {
                         </Button>
                       )}
                     </div>
-                    {hiddenFileInput("department", idx)}
                   </CardContent>
                 </Card>
               </motion.div>
@@ -1485,15 +1452,7 @@ export function AdminPanel() {
                   </div>
 
                   <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => triggerUpload("gallery", idx)}
-                      className="text-xs flex-1"
-                    >
-                      <Upload className="w-3.5 h-3.5 ml-1" />
-                      بارکردنی وێنە
-                    </Button>
+                    <UploadButton type="gallery" index={idx} label="بارکردنی وێنە" />
                     {item.image && (
                       <Button
                         variant="outline"
@@ -1511,7 +1470,6 @@ export function AdminPanel() {
                       </Button>
                     )}
                   </div>
-                  {hiddenFileInput("gallery", idx)}
                 </CardContent>
               </Card>
             </motion.div>
@@ -1856,26 +1814,19 @@ export function AdminPanel() {
                     {/* Upload buttons */}
                     <div className="flex gap-2">
                       {/* Multi-image upload (accepts multiple files) */}
-                      <input
-                        key={`arc-multi-${idx}`}
-                        ref={(el) => { arcMultiFileRefs.current[idx] = el; }}
-                        type="file"
-                        accept="image/*"
-                        multiple
-                        className="hidden"
-                        onChange={(e) => handleArchiveImageUpload(e, idx)}
-                      />
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          arcMultiFileRefs.current[idx]?.click();
-                        }}
-                        className="text-xs flex-1"
-                      >
-                        <ImagePlus className="w-3.5 h-3.5 ml-1" />
-                        بارکردنی وێنە (چەندین)
-                      </Button>
+                      <label className="inline-flex items-center justify-center cursor-pointer flex-1">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          className="sr-only"
+                          onChange={(e) => handleArchiveImageUpload(e, idx)}
+                        />
+                        <span className="inline-flex items-center gap-1 rounded-md border border-input bg-background px-3 py-1.5 text-xs font-medium ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground w-full justify-center">
+                          <ImagePlus className="w-3.5 h-3.5" />
+                          بارکردنی وێنە (چەندین)
+                        </span>
+                      </label>
                     </div>
                   </div>
                 </CardContent>
