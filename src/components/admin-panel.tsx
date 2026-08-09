@@ -735,8 +735,15 @@ export function AdminPanel() {
     }
 
     try {
+      /* Show loading message immediately */
+      toast.loading("بارکردنی وێنە... تکایە چاوەڕوان بە");
+
       /* Convert to base64 in browser */
       const url = await fileToBase64(file);
+
+      /* Update loading message */
+      toast.dismiss();
+      toast.loading("پاشەکەوتکردن...");
 
       /* Update local state first for instant preview */
       if (type === "department") {
@@ -811,9 +818,11 @@ export function AdminPanel() {
       }
 
       await refetch();
-      toast.success("وێنەکە بارکرا و تۆمارکرا");
+      toast.dismiss();
+      toast.success("وێنەکە بارکرا و تۆمارکرا ✅");
     } catch {
-      toast.error("هەڵەیەک ڕوویدا لە بارکردنی وێنە");
+      toast.dismiss();
+      toast.error("هەڵەیەک ڕوویدا لە بارکردنی وێنە ❌");
     }
 
     e.target.value = "";
