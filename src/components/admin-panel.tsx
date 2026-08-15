@@ -327,6 +327,33 @@ export function AdminPanel() {
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [adminPassword, setAdminPassword] = useState("pirmam2025");
 
+  /* Security: Login attempt limiting */
+  const MAX_ATTEMPTS = 5;
+  const LOCKOUT_SECONDS = 60;
+  const [failedAttempts, setFailedAttempts] = useState(0);
+  const [lockoutUntil, setLockoutUntil] = useState<number | null>(null);
+  const [countdown, setCountdown] = useState(0);
+
+  /* Countdown timer for lockout */
+  React.useEffect(() => {
+    if (lockoutUntil) {
+      const interval = setInterval(() => {
+        const remaining = Math.max(0, Math.ceil((lockoutUntil - Date.now()) / 1000));
+        setCountdown(remaining);
+        if (remaining <= 0) {
+          setLockoutUntil(null);
+          setFailedAttempts(0);
+          setCountdown(0);
+          clearInterval(interval);
+        }
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [lockoutUntil]);
+
+  /* Security: Check if IP is blocked (server-side rate limit) */
+  const [isIPBlocked, setIsIPBlocked] = useState(false);
+
   /* Tab state */
   const [activeTab, setActiveTab] = useState("hero");
 
@@ -459,18 +486,69 @@ export function AdminPanel() {
 
   async function handlePasswordSubmit(e: React.FormEvent) {
     e.preventDefault();
+
+    /* Security: Check lockout */
+    if (lockoutUntil && Date.now() < lockoutUntil) {
+      const remaining = Math.ceil((lockoutUntil - Date.now()) / 1000);
+      toast.error(`تکایە ${remaining} چرکە چاوەڕوان بکە (هەوڵی زۆر)`);
+      return;
+    }
+
+    /* Security: Check IP block via server */
+    try {
+      const checkRes = await fetch("/api/admin/auth-check");
+      if (checkRes.status === 429) {
+        setIsIPBlocked(true);
+        toast.error("دەستگەیشتن بەسترایەوە. تکایە 5 خولەک چاوەڕوان بکە");
+        return;
+      }
+    } catch {
+      /* Continue if check fails */
+    }
+
     setPasswordLoading(true);
     try {
+      /* Report attempt to server for rate limiting */
+      await fetch("/api/admin/auth-attempt", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ success: false }),
+      });
+
       await fetchAdminPassword();
       /* Small delay to ensure password is loaded */
       setTimeout(() => {
         if (passwordInput === adminPassword) {
           setAuthenticated(true);
           setPasswordInput("");
+          setFailedAttempts(0);
+          setLockoutUntil(null);
+          setCountdown(0);
+          setIsIPBlocked(false);
           toast.success("بە سەرکەوتوویی چوویتەژوورەوە");
           fetchTabData(activeTab);
+
+          /* Report success to server */
+          fetch("/api/admin/auth-attempt", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ success: true }),
+          });
         } else {
-          toast.error("وشەی نهێنی هەڵەیە");
+          /* Wrong password */
+          const newAttempts = failedAttempts + 1;
+          setFailedAttempts(newAttempts);
+          setPasswordInput("");
+
+          if (newAttempts >= MAX_ATTEMPTS) {
+            /* Lock out for LOCKOUT_SECONDS */
+            const lockTime = Date.now() + LOCKOUT_SECONDS * 1000;
+            setLockoutUntil(lockTime);
+            toast.error(`${LOCKOUT_SECONDS} چرکە بەسترایەوە. هەوڵی زۆری دا!`);
+          } else {
+            const remaining = MAX_ATTEMPTS - newAttempts;
+            toast.error(`وشەی نهێنی هەڵەیە. ${remaining} هەوڵی ماوە`);
+          }
         }
         setPasswordLoading(false);
       }, 200);
@@ -478,10 +556,22 @@ export function AdminPanel() {
       if (passwordInput === adminPassword) {
         setAuthenticated(true);
         setPasswordInput("");
+        setFailedAttempts(0);
+        setLockoutUntil(null);
         toast.success("بە سەرکەوتوویی چوویتەژوورەوە");
         fetchTabData(activeTab);
       } else {
-        toast.error("وشەی نهێنی هەڵەیە");
+        const newAttempts = failedAttempts + 1;
+        setFailedAttempts(newAttempts);
+        setPasswordInput("");
+        if (newAttempts >= MAX_ATTEMPTS) {
+          const lockTime = Date.now() + LOCKOUT_SECONDS * 1000;
+          setLockoutUntil(lockTime);
+          toast.error(`${LOCKOUT_SECONDS} چرکە بەسترایەوە. هەوڵی زۆری دا!`);
+        } else {
+          const remaining = MAX_ATTEMPTS - newAttempts;
+          toast.error(`وشەی نهێنی هەڵەیە. ${remaining} هەوڵی ماوە`);
+        }
       }
       setPasswordLoading(false);
     }
@@ -859,6 +949,8 @@ export function AdminPanel() {
      ============================ */
 
   function renderPasswordScreen() {
+    const isLocked = lockoutUntil !== null && countdown > 0;
+
     return (
       <div className="flex-1 flex items-center justify-center p-6">
         <motion.div
@@ -868,16 +960,61 @@ export function AdminPanel() {
           className="w-full max-w-sm"
         >
           <div className="text-center mb-6">
-            <div className="mx-auto w-16 h-16 rounded-full bg-teal-100 dark:bg-teal-900/30 flex items-center justify-center mb-4">
-              <ShieldCheck className="w-8 h-8 text-teal-600" />
+            <div className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4 ${isLocked ? "bg-red-100 dark:bg-red-900/30" : "bg-teal-100 dark:bg-teal-900/30"}`}>
+              {isLocked ? (
+                <ShieldCheck className="w-8 h-8 text-red-500" />
+              ) : (
+                <ShieldCheck className="w-8 h-8 text-teal-600" />
+              )}
             </div>
             <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">
               پانێلی بەڕێوەبەر
             </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-              تکایە وشەی نهێنی بنووسە بۆ چوونەژوورەوە
+              {isLocked ? "دەستگەیشتن بەسترایەوە" : "تکایە وشەی نهێنی بنووسە بۆ چوونەژوورەوە"}
             </p>
           </div>
+
+          {/* Lockout warning */}
+          {isLocked && (
+            <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-center">
+              <p className="text-sm text-red-600 dark:text-red-400 font-medium">
+                ⚠️ ٥ هەوڵی هەڵەت دا! بەستراویتەوە.
+              </p>
+              <p className="text-2xl font-bold text-red-600 dark:text-red-400 mt-1">
+                {countdown}
+              </p>
+              <p className="text-xs text-red-500 dark:text-red-400 mt-1">
+                چرکە ماوە بۆ دووبارە تاقیکردنەوە
+              </p>
+            </div>
+          )}
+
+          {/* IP blocked warning */}
+          {isIPBlocked && (
+            <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-center">
+              <p className="text-sm text-red-600 dark:text-red-400 font-medium">
+                🔒 IP আপনার بەسترایەوە. تکایە 5 خولەک چاوەڕوان بکە.
+              </p>
+            </div>
+          )}
+
+          {/* Attempt counter */}
+          {!isLocked && failedAttempts > 0 && (
+            <div className="mb-4 flex gap-1 justify-center">
+              {Array.from({ length: MAX_ATTEMPTS }).map((_, i) => (
+                <div
+                  key={i}
+                  className={`w-2.5 h-2.5 rounded-full transition-colors ${
+                    i < failedAttempts ? "bg-red-500" : "bg-gray-300 dark:bg-gray-600"
+                  }`}
+                />
+              ))}
+              <p className="text-xs text-gray-500 mr-2 mt-0.5">
+                {MAX_ATTEMPTS - failedAttempts} هەوڵی ماوە
+              </p>
+            </div>
+          )}
 
           <form onSubmit={handlePasswordSubmit} className="space-y-4">
             <div className="space-y-2">
@@ -892,19 +1029,22 @@ export function AdminPanel() {
                 onChange={(e) => setPasswordInput(e.target.value)}
                 className="text-right"
                 autoFocus
+                disabled={isLocked || isIPBlocked}
               />
             </div>
             <Button
               type="submit"
-              className="w-full bg-teal-600 hover:bg-teal-700 text-white"
-              disabled={passwordLoading || !passwordInput}
+              className="w-full bg-teal-600 hover:bg-teal-700 text-white disabled:opacity-50"
+              disabled={passwordLoading || !passwordInput || isLocked || isIPBlocked}
             >
               {passwordLoading ? (
                 <Loader2 className="w-4 h-4 animate-spin ml-2" />
+              ) : isLocked ? (
+                `چاوەڕوان بکە... ${countdown}`
               ) : (
                 <ChevronLeft className="w-4 h-4 ml-2" />
               )}
-              چوونەژوورەوە
+              {!isLocked && !passwordLoading ? "چوونەژوورەوە" : ""}
             </Button>
           </form>
         </motion.div>
