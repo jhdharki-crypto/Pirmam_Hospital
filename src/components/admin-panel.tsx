@@ -354,6 +354,32 @@ export function AdminPanel() {
   /* Security: Check if IP is blocked (server-side rate limit) */
   const [isIPBlocked, setIsIPBlocked] = useState(false);
 
+  /* Secret admin access: Ctrl+Shift+A keyboard shortcut */
+  React.useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.ctrlKey && e.shiftKey && e.key === "A") {
+        e.preventDefault();
+        setOpen(true);
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  /* Secret admin access: listen for footer logo 5-click event */
+  React.useEffect(() => {
+    function handleSecretTrigger() {
+      setOpen(true);
+    }
+    window.addEventListener("open-admin-panel", handleSecretTrigger);
+    return () => window.removeEventListener("open-admin-panel", handleSecretTrigger);
+  }, []);
+
+  /* Secret admin access: exposed function for hidden trigger */
+  const openAdmin = React.useCallback(() => {
+    setOpen(true);
+  }, []);
+
   /* Tab state */
   const [activeTab, setActiveTab] = useState("hero");
 
@@ -2147,24 +2173,7 @@ export function AdminPanel() {
 
   return (
     <>
-      {/* Floating Admin Button */}
-      <motion.div
-        className="fixed bottom-6 left-6 z-40"
-        initial={{ scale: 0, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ delay: 1, type: "spring", stiffness: 200 }}
-      >
-        <button
-          onClick={() => setOpen(true)}
-          className="group relative w-12 h-12 rounded-full bg-teal-600 hover:bg-teal-700 text-white shadow-lg shadow-teal-600/30 transition-all duration-300 hover:shadow-xl hover:shadow-teal-600/40 hover:scale-110 flex items-center justify-center"
-          aria-label="پانێلی بەڕێوەبەر"
-        >
-          <Settings className="w-5 h-5 transition-transform duration-500 group-hover:rotate-180" />
-
-          {/* Pulse animation ring */}
-          <span className="absolute inset-0 rounded-full bg-teal-600 animate-ping opacity-20" />
-        </button>
-      </motion.div>
+      {/* Hidden Admin Access - NO visible button for visitors */}
 
       {/* Admin Panel Sheet */}
       <Sheet open={open} onOpenChange={handleOpenChange}>
