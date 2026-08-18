@@ -6,6 +6,7 @@
 
 "use client";
 
+import React, { useState, useRef } from "react";
 import {
   Phone,
   MapPin,
@@ -18,8 +19,23 @@ import {
 import Image from "next/image";
 import { useContent } from "@/lib/content-store";
 
+/* Secret admin trigger: dispatches custom event when logo clicked 5 times within 3 seconds */
 export function Footer() {
   const { getSetting } = useContent();
+  const [clickCount, setClickCount] = useState(0);
+  const clickTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  function handleLogoClick() {
+    if (clickTimer.current) clearTimeout(clickTimer.current);
+    const newCount = clickCount + 1;
+    setClickCount(newCount);
+    if (newCount >= 5) {
+      window.dispatchEvent(new CustomEvent("open-admin-panel"));
+      setClickCount(0);
+    } else {
+      clickTimer.current = setTimeout(() => setClickCount(0), 3000);
+    }
+  }
 
   const hospitalNameKu = getSetting("hospitalNameKu");
   const hospitalNameEn = getSetting("hospitalNameEn");
@@ -46,7 +62,7 @@ export function Footer() {
 
           {/* Column 1: Hospital Identity */}
           <div className="sm:col-span-2 lg:col-span-1">
-            <div className="flex items-center gap-2 mb-4">
+            <div className="flex items-center gap-2 mb-4 cursor-pointer select-none" onClick={handleLogoClick} title="نەخۆشخانەی پیرمام">
               <Image
                 src="/logo.png"
                 alt="نەخۆشخانەی پیرمام Logo"
