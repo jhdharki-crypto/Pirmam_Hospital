@@ -331,3 +331,30 @@ Stage Summary:
 - Two bugs fixed: (1) Sonner toasts now display correctly, (2) upload buttons use bulletproof label+input pattern
 - Changed files: src/components/admin-panel.tsx, src/app/layout.tsx
 - Ready for git push and Vercel redeployment
+---
+Task ID: login-fix
+Agent: Main
+Task: Fix admin login not working after middleware was added
+
+Work Log:
+- Identified THREE root causes:
+  1. **Middleware blocked password fetch**: `fetchAdminPassword()` called `/api/admin/content` which was protected by the new middleware (401). Password fell back to default but the entire client-side comparison approach was fragile.
+  2. **Node.js `crypto` incompatible with Edge Runtime**: middleware imported `admin-token.ts` which used `import { createHmac } from "crypto"` — Edge Runtime doesn't support Node.js crypto module.
+  3. **Separate rate-limit stores**: `auth-attempt` and `auth-check` had independent in-memory stores that never shared state.
+- Fix 1: Rewrote login to be **100% server-side**. Client sends password to `/api/admin/auth-login`, server verifies against DB and sets httpOnly cookie. Client never sees or compares the password.
+- Fix 2: Rewrote `admin-token.ts` to use **Web Crypto API** (`crypto.subtle.digest`) which works in both Edge Runtime and Node.js. Added `verifyAdminToken()` (sync, for middleware) and `verifyAdminTokenFull()` (async, for route handlers).
+- Fix 3: Consolidated all auth logic into single `/api/admin/auth-login` route (GET for rate-limit check, POST for login). Removed separate `auth-check` and `auth-attempt` routes.
+- Updated middleware to only allow `/api/admin/auth-login` as public route
+- Updated login UI: removed client-side attempt counter/lockout, added server-side error messages and block countdown
+- Prisma schema set to SQLite for local testing, PostgreSQL for production (Vercel has DATABASE_URL env var)
+- Verified via curl: correct password → 200 + cookie set, wrong password → 401, protected routes return 401 without cookie, 200 with cookie
+- Verified via agent-browser: Ctrl+Shift+A opens admin panel, password entry, submit, all 5 tabs load with data, zero console errors
+
+Stage Summary:
+- Login now works entirely server-side (more secure — password never reaches client JS)
+- Token system uses Web Crypto API (Edge Runtime compatible for Next.js 16)
+- Single auth endpoint (`/api/admin/auth-login`) handles both login and rate limiting
+- Middleware correctly protects all `/api/admin/*` routes except auth-login
+- Files changed: admin-panel.tsx, admin-login/route.ts, admin-token.ts, middleware.ts
+- Files removed: auth-check/route.ts, auth-attempt/route.ts
+- Lint passes clean, zero console errors

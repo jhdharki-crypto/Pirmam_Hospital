@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAdminToken } from "@/lib/admin-token";
 
-/* Routes that are publicly accessible (no auth needed) */
+/* Only /api/admin/auth-login is publicly accessible (for login).
+   All other /api/admin/* routes require the pirmam-auth cookie. */
 const PUBLIC_ADMIN_ROUTES = [
-  "/api/admin/auth-check",
-  "/api/admin/auth-attempt",
   "/api/admin/auth-login",
 ];
 
@@ -16,7 +15,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  /* Allow public admin routes (login, rate limiting) */
+  /* Allow public admin routes (login) */
   if (PUBLIC_ADMIN_ROUTES.some((r) => pathname.startsWith(r))) {
     return NextResponse.next();
   }

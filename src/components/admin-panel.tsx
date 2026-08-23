@@ -325,34 +325,12 @@ export function AdminPanel() {
   const [authenticated, setAuthenticated] = useState(false);
   const [passwordInput, setPasswordInput] = useState("");
   const [passwordLoading, setPasswordLoading] = useState(false);
-  const [adminPassword, setAdminPassword] = useState("pirmam2025");
 
-  /* Security: Login attempt limiting */
-  const MAX_ATTEMPTS = 5;
-  const LOCKOUT_SECONDS = 60;
-  const [failedAttempts, setFailedAttempts] = useState(0);
-  const [lockoutUntil, setLockoutUntil] = useState<number | null>(null);
-  const [countdown, setCountdown] = useState(0);
-
-  /* Countdown timer for lockout */
-  React.useEffect(() => {
-    if (lockoutUntil) {
-      const interval = setInterval(() => {
-        const remaining = Math.max(0, Math.ceil((lockoutUntil - Date.now()) / 1000));
-        setCountdown(remaining);
-        if (remaining <= 0) {
-          setLockoutUntil(null);
-          setFailedAttempts(0);
-          setCountdown(0);
-          clearInterval(interval);
-        }
-      }, 1000);
-      return () => clearInterval(interval);
-    }
-  }, [lockoutUntil]);
-
-  /* Security: Check if IP is blocked (server-side rate limit) */
-  const [isIPBlocked, setIsIPBlocked] = useState(false);
+  /* Server-side rate limiting feedback */
+  const [loginError, setLoginError] = useState("");
+  const [remainingAttempts, setRemainingAttempts] = useState<number | null>(null);
+  const [serverBlocked, setServerBlocked] = useState(false);
+  const [blockCountdown, setBlockCountdown] = useState(0);
 
   /* Secret admin access: Ctrl+Shift+A keyboard shortcut */
   React.useEffect(() => {
@@ -396,20 +374,8 @@ export function AdminPanel() {
   /* ============================
      PASSWORD & AUTH
      ============================ */
-
-  const fetchAdminPassword = useCallback(async () => {
-    try {
-      const res = await fetch("/api/admin/content");
-      if (res.ok) {
-        const data = await res.json();
-        if (data.adminPassword) {
-          setAdminPassword(data.adminPassword);
-        }
-      }
-    } catch {
-      /* Use default password */
-    }
-  }, []);
+  /* Password verification is done entirely server-side via /api/admin/auth-login.
+     The client never sees or compares the password. */
 
   /* ============================
      DATA FETCHING
@@ -493,14 +459,15 @@ export function AdminPanel() {
     [fetchSettings, fetchDepartments, fetchGallery, fetchArchive]
   );
 
-  /* Handle sheet open - fetch password if not authenticated */
+  /* Handle sheet open */
   async function handleOpenChange(isOpen: boolean) {
     setOpen(isOpen);
-    if (isOpen && !authenticated) {
-      await fetchAdminPassword();
-    }
     if (isOpen && authenticated) {
       fetchTabData(activeTab);
+    }
+    if (isOpen && !authenticated) {
+      setLoginError("");
+      setRemainingAttempts(null);
     }
   }
 
@@ -512,110 +479,65 @@ export function AdminPanel() {
 
   async function handlePasswordSubmit(e: React.FormEvent) {
     e.preventDefault();
-
-    /* Security: Check lockout */
-    if (lockoutUntil && Date.now() < lockoutUntil) {
-      const remaining = Math.ceil((lockoutUntil - Date.now()) / 1000);
-      toast.error(`تکایە ${remaining} چرکە چاوەڕوان بکە (هەوڵی زۆر)`);
-      return;
-    }
-
-    /* Security: Check IP block via server */
-    try {
-      const checkRes = await fetch("/api/admin/auth-check");
-      if (checkRes.status === 429) {
-        setIsIPBlocked(true);
-        toast.error("دەستگەیشتن بەسترایەوە. تکایە 5 خولەک چاوەڕوان بکە");
-        return;
-      }
-    } catch {
-      /* Continue if check fails */
-    }
-
     setPasswordLoading(true);
+    setLoginError("");
+    setServerBlocked(false);
+
     try {
-      /* Report attempt to server for rate limiting */
-      await fetch("/api/admin/auth-attempt", {
+      const res = await fetch("/api/admin/auth-login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ success: false }),
+        body: JSON.stringify({ password: passwordInput }),
       });
 
-      await fetchAdminPassword();
-      /* Small delay to ensure password is loaded */
-      setTimeout(() => {
-        if (passwordInput === adminPassword) {
-          setAuthenticated(true);
-          setPasswordInput("");
-          setFailedAttempts(0);
-          setLockoutUntil(null);
-          setCountdown(0);
-          setIsIPBlocked(false);
-          toast.success("بە سەرکەوتوویی چوویتەژوورەوە");
-          fetchTabData(activeTab);
+      const data = await res.json();
 
-          /* Report success to server for rate limiting */
-          fetch("/api/admin/auth-attempt", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ success: true }),
-          });
-
-          /* Set auth token cookie for API route protection */
-          fetch("/api/admin/auth-login", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ password: passwordInput }),
-          });
-        } else {
-          /* Wrong password */
-          const newAttempts = failedAttempts + 1;
-          setFailedAttempts(newAttempts);
-          setPasswordInput("");
-
-          if (newAttempts >= MAX_ATTEMPTS) {
-            /* Lock out for LOCKOUT_SECONDS */
-            const lockTime = Date.now() + LOCKOUT_SECONDS * 1000;
-            setLockoutUntil(lockTime);
-            toast.error(`${LOCKOUT_SECONDS} چرکە بەسترایەوە. هەوڵی زۆری دا!`);
-          } else {
-            const remaining = MAX_ATTEMPTS - newAttempts;
-            toast.error(`وشەی نهێنی هەڵەیە. ${remaining} هەوڵی ماوە`);
-          }
-        }
-        setPasswordLoading(false);
-      }, 200);
-    } catch {
-      if (passwordInput === adminPassword) {
+      if (res.ok && data.success) {
+        /* Server verified password and set httpOnly cookie */
         setAuthenticated(true);
         setPasswordInput("");
-        setFailedAttempts(0);
-        setLockoutUntil(null);
+        setLoginError("");
+        setRemainingAttempts(null);
         toast.success("بە سەرکەوتوویی چوویتەژوورەوە");
         fetchTabData(activeTab);
-
-        /* Set auth token cookie for API route protection */
-        fetch("/api/admin/auth-login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ password: passwordInput }),
-        });
+      } else if (res.status === 429) {
+        /* IP blocked by server-side rate limiting */
+        setServerBlocked(true);
+        const secs = data.remainingSeconds || 300;
+        setBlockCountdown(secs);
+        toast.error(`دەستگەیشتن بەسترایەوە. تکایە ${secs} چرکە چاوەڕوان بکە`);
       } else {
-        const newAttempts = failedAttempts + 1;
-        setFailedAttempts(newAttempts);
+        /* Wrong password */
         setPasswordInput("");
-        if (newAttempts >= MAX_ATTEMPTS) {
-          const lockTime = Date.now() + LOCKOUT_SECONDS * 1000;
-          setLockoutUntil(lockTime);
-          toast.error(`${LOCKOUT_SECONDS} چرکە بەسترایەوە. هەوڵی زۆری دا!`);
+        if (data.remainingAttempts != null && data.remainingAttempts <= 3) {
+          setRemainingAttempts(data.remainingAttempts);
+          setLoginError(`وشەی نهێنی هەڵەیە. ${data.remainingAttempts} هەوڵی ماوە`);
         } else {
-          const remaining = MAX_ATTEMPTS - newAttempts;
-          toast.error(`وشەی نهێنی هەڵەیە. ${remaining} هەوڵی ماوە`);
+          setLoginError("وشەی نهێنی هەڵەیە");
         }
       }
-      setPasswordLoading(false);
+    } catch {
+      setLoginError("هەڵەیەک ڕوویدا. تکایە دووبارە هەوڵبدەرەوە");
     }
+
+    setPasswordLoading(false);
   }
+
+  /* Countdown timer for server-side block */
+  React.useEffect(() => {
+    if (!serverBlocked || blockCountdown <= 0) return;
+    const interval = setInterval(() => {
+      setBlockCountdown((prev) => {
+        if (prev <= 1) {
+          setServerBlocked(false);
+          clearInterval(interval);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [serverBlocked, blockCountdown]);
 
   /* ============================
      SAVE HANDLERS
@@ -989,8 +911,6 @@ export function AdminPanel() {
      ============================ */
 
   function renderPasswordScreen() {
-    const isLocked = lockoutUntil !== null && countdown > 0;
-
     return (
       <div className="flex-1 flex items-center justify-center p-6">
         <motion.div
@@ -1000,8 +920,8 @@ export function AdminPanel() {
           className="w-full max-w-sm"
         >
           <div className="text-center mb-6">
-            <div className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4 ${isLocked ? "bg-red-100 dark:bg-red-900/30" : "bg-teal-100 dark:bg-teal-900/30"}`}>
-              {isLocked ? (
+            <div className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4 ${serverBlocked ? "bg-red-100 dark:bg-red-900/30" : "bg-teal-100 dark:bg-teal-900/30"}`}>
+              {serverBlocked ? (
                 <ShieldCheck className="w-8 h-8 text-red-500" />
               ) : (
                 <ShieldCheck className="w-8 h-8 text-teal-600" />
@@ -1011,18 +931,18 @@ export function AdminPanel() {
               پانێلی بەڕێوەبەر
             </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-              {isLocked ? "دەستگەیشتن بەسترایەوە" : "تکایە وشەی نهێنی بنووسە بۆ چوونەژوورەوە"}
+              {serverBlocked ? "دەستگەیشتن بەسترایەوە" : "تکایە وشەی نهێنی بنووسە بۆ چوونەژوورەوە"}
             </p>
           </div>
 
-          {/* Lockout warning */}
-          {isLocked && (
+          {/* Server-side block warning */}
+          {serverBlocked && (
             <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-center">
               <p className="text-sm text-red-600 dark:text-red-400 font-medium">
-                ⚠️ ٥ هەوڵی هەڵەت دا! بەستراویتەوە.
+                🔒 هەوڵی زۆری دا! بەستراویتەوە.
               </p>
               <p className="text-2xl font-bold text-red-600 dark:text-red-400 mt-1">
-                {countdown}
+                {blockCountdown}
               </p>
               <p className="text-xs text-red-500 dark:text-red-400 mt-1">
                 چرکە ماوە بۆ دووبارە تاقیکردنەوە
@@ -1030,28 +950,11 @@ export function AdminPanel() {
             </div>
           )}
 
-          {/* IP blocked warning */}
-          {isIPBlocked && (
+          {/* Error message */}
+          {loginError && !serverBlocked && (
             <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-center">
               <p className="text-sm text-red-600 dark:text-red-400 font-medium">
-                🔒 IP আপনার بەسترایەوە. تکایە 5 خولەک چاوەڕوان بکە.
-              </p>
-            </div>
-          )}
-
-          {/* Attempt counter */}
-          {!isLocked && failedAttempts > 0 && (
-            <div className="mb-4 flex gap-1 justify-center">
-              {Array.from({ length: MAX_ATTEMPTS }).map((_, i) => (
-                <div
-                  key={i}
-                  className={`w-2.5 h-2.5 rounded-full transition-colors ${
-                    i < failedAttempts ? "bg-red-500" : "bg-gray-300 dark:bg-gray-600"
-                  }`}
-                />
-              ))}
-              <p className="text-xs text-gray-500 mr-2 mt-0.5">
-                {MAX_ATTEMPTS - failedAttempts} هەوڵی ماوە
+                {loginError}
               </p>
             </div>
           )}
@@ -1069,22 +972,22 @@ export function AdminPanel() {
                 onChange={(e) => setPasswordInput(e.target.value)}
                 className="text-right"
                 autoFocus
-                disabled={isLocked || isIPBlocked}
+                disabled={serverBlocked || passwordLoading}
               />
             </div>
             <Button
               type="submit"
               className="w-full bg-teal-600 hover:bg-teal-700 text-white disabled:opacity-50"
-              disabled={passwordLoading || !passwordInput || isLocked || isIPBlocked}
+              disabled={passwordLoading || !passwordInput || serverBlocked}
             >
               {passwordLoading ? (
                 <Loader2 className="w-4 h-4 animate-spin ml-2" />
-              ) : isLocked ? (
-                `چاوەڕوان بکە... ${countdown}`
+              ) : serverBlocked ? (
+                `چاوەڕوان بکە... ${blockCountdown}`
               ) : (
                 <ChevronLeft className="w-4 h-4 ml-2" />
               )}
-              {!isLocked && !passwordLoading ? "چوونەژوورەوە" : ""}
+              {!serverBlocked && !passwordLoading ? "چوونەژوورەوە" : ""}
             </Button>
           </form>
         </motion.div>
