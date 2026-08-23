@@ -325,12 +325,7 @@ export function AdminPanel() {
   const [authenticated, setAuthenticated] = useState(false);
   const [passwordInput, setPasswordInput] = useState("");
   const [passwordLoading, setPasswordLoading] = useState(false);
-
-  /* Server-side rate limiting feedback */
-  const [loginError, setLoginError] = useState("");
-  const [remainingAttempts, setRemainingAttempts] = useState<number | null>(null);
-  const [serverBlocked, setServerBlocked] = useState(false);
-  const [blockCountdown, setBlockCountdown] = useState(0);
+  const [adminPassword, setAdminPassword] = useState("jihadpirmam223355");
 
   /* Secret admin access: Ctrl+Shift+A keyboard shortcut */
   React.useEffect(() => {
@@ -374,8 +369,20 @@ export function AdminPanel() {
   /* ============================
      PASSWORD & AUTH
      ============================ */
-  /* Password verification is done entirely server-side via /api/admin/auth-login.
-     The client never sees or compares the password. */
+
+  const fetchAdminPassword = useCallback(async () => {
+    try {
+      const res = await fetch("/api/admin/content");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.adminPassword) {
+          setAdminPassword(data.adminPassword);
+        }
+      }
+    } catch {
+      /* Use default password */
+    }
+  }, []);
 
   /* ============================
      DATA FETCHING
@@ -459,15 +466,14 @@ export function AdminPanel() {
     [fetchSettings, fetchDepartments, fetchGallery, fetchArchive]
   );
 
-  /* Handle sheet open */
+  /* Handle sheet open - fetch password if not authenticated */
   async function handleOpenChange(isOpen: boolean) {
     setOpen(isOpen);
+    if (isOpen && !authenticated) {
+      await fetchAdminPassword();
+    }
     if (isOpen && authenticated) {
       fetchTabData(activeTab);
-    }
-    if (isOpen && !authenticated) {
-      setLoginError("");
-      setRemainingAttempts(null);
     }
   }
 
@@ -480,64 +486,22 @@ export function AdminPanel() {
   async function handlePasswordSubmit(e: React.FormEvent) {
     e.preventDefault();
     setPasswordLoading(true);
-    setLoginError("");
-    setServerBlocked(false);
 
-    try {
-      const res = await fetch("/api/admin/auth-login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password: passwordInput }),
-      });
+    await fetchAdminPassword();
 
-      const data = await res.json();
-
-      if (res.ok && data.success) {
-        /* Server verified password and set httpOnly cookie */
+    setTimeout(() => {
+      if (passwordInput === adminPassword) {
         setAuthenticated(true);
         setPasswordInput("");
-        setLoginError("");
-        setRemainingAttempts(null);
         toast.success("بە سەرکەوتوویی چوویتەژوورەوە");
         fetchTabData(activeTab);
-      } else if (res.status === 429) {
-        /* IP blocked by server-side rate limiting */
-        setServerBlocked(true);
-        const secs = data.remainingSeconds || 300;
-        setBlockCountdown(secs);
-        toast.error(`دەستگەیشتن بەسترایەوە. تکایە ${secs} چرکە چاوەڕوان بکە`);
       } else {
-        /* Wrong password */
         setPasswordInput("");
-        if (data.remainingAttempts != null && data.remainingAttempts <= 3) {
-          setRemainingAttempts(data.remainingAttempts);
-          setLoginError(`وشەی نهێنی هەڵەیە. ${data.remainingAttempts} هەوڵی ماوە`);
-        } else {
-          setLoginError("وشەی نهێنی هەڵەیە");
-        }
+        toast.error("وشەی نهێنی هەڵەیە");
       }
-    } catch {
-      setLoginError("هەڵەیەک ڕوویدا. تکایە دووبارە هەوڵبدەرەوە");
-    }
-
-    setPasswordLoading(false);
+      setPasswordLoading(false);
+    }, 200);
   }
-
-  /* Countdown timer for server-side block */
-  React.useEffect(() => {
-    if (!serverBlocked || blockCountdown <= 0) return;
-    const interval = setInterval(() => {
-      setBlockCountdown((prev) => {
-        if (prev <= 1) {
-          setServerBlocked(false);
-          clearInterval(interval);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [serverBlocked, blockCountdown]);
 
   /* ============================
      SAVE HANDLERS
@@ -920,44 +884,16 @@ export function AdminPanel() {
           className="w-full max-w-sm"
         >
           <div className="text-center mb-6">
-            <div className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4 ${serverBlocked ? "bg-red-100 dark:bg-red-900/30" : "bg-teal-100 dark:bg-teal-900/30"}`}>
-              {serverBlocked ? (
-                <ShieldCheck className="w-8 h-8 text-red-500" />
-              ) : (
-                <ShieldCheck className="w-8 h-8 text-teal-600" />
-              )}
+            <div className="mx-auto w-16 h-16 rounded-full bg-teal-100 dark:bg-teal-900/30 flex items-center justify-center mb-4">
+              <ShieldCheck className="w-8 h-8 text-teal-600" />
             </div>
             <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">
               پانێلی بەڕێوەبەر
             </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-              {serverBlocked ? "دەستگەیشتن بەسترایەوە" : "تکایە وشەی نهێنی بنووسە بۆ چوونەژوورەوە"}
+              تکایە وشەی نهێنی بنووسە بۆ چوونەژوورەوە
             </p>
           </div>
-
-          {/* Server-side block warning */}
-          {serverBlocked && (
-            <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-center">
-              <p className="text-sm text-red-600 dark:text-red-400 font-medium">
-                🔒 هەوڵی زۆری دا! بەستراویتەوە.
-              </p>
-              <p className="text-2xl font-bold text-red-600 dark:text-red-400 mt-1">
-                {blockCountdown}
-              </p>
-              <p className="text-xs text-red-500 dark:text-red-400 mt-1">
-                چرکە ماوە بۆ دووبارە تاقیکردنەوە
-              </p>
-            </div>
-          )}
-
-          {/* Error message */}
-          {loginError && !serverBlocked && (
-            <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-center">
-              <p className="text-sm text-red-600 dark:text-red-400 font-medium">
-                {loginError}
-              </p>
-            </div>
-          )}
 
           <form onSubmit={handlePasswordSubmit} className="space-y-4">
             <div className="space-y-2">
@@ -972,22 +908,19 @@ export function AdminPanel() {
                 onChange={(e) => setPasswordInput(e.target.value)}
                 className="text-right"
                 autoFocus
-                disabled={serverBlocked || passwordLoading}
               />
             </div>
             <Button
               type="submit"
               className="w-full bg-teal-600 hover:bg-teal-700 text-white disabled:opacity-50"
-              disabled={passwordLoading || !passwordInput || serverBlocked}
+              disabled={passwordLoading || !passwordInput}
             >
               {passwordLoading ? (
                 <Loader2 className="w-4 h-4 animate-spin ml-2" />
-              ) : serverBlocked ? (
-                `چاوەڕوان بکە... ${blockCountdown}`
               ) : (
                 <ChevronLeft className="w-4 h-4 ml-2" />
               )}
-              {!serverBlocked && !passwordLoading ? "چوونەژوورەوە" : ""}
+              {!passwordLoading ? "چوونەژوورەوە" : ""}
             </Button>
           </form>
         </motion.div>
