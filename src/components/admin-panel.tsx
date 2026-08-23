@@ -554,11 +554,18 @@ export function AdminPanel() {
           toast.success("بە سەرکەوتوویی چوویتەژوورەوە");
           fetchTabData(activeTab);
 
-          /* Report success to server */
+          /* Report success to server for rate limiting */
           fetch("/api/admin/auth-attempt", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ success: true }),
+          });
+
+          /* Set auth token cookie for API route protection */
+          fetch("/api/admin/auth-login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ password: passwordInput }),
           });
         } else {
           /* Wrong password */
@@ -586,6 +593,13 @@ export function AdminPanel() {
         setLockoutUntil(null);
         toast.success("بە سەرکەوتوویی چوویتەژوورەوە");
         fetchTabData(activeTab);
+
+        /* Set auth token cookie for API route protection */
+        fetch("/api/admin/auth-login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ password: passwordInput }),
+        });
       } else {
         const newAttempts = failedAttempts + 1;
         setFailedAttempts(newAttempts);
