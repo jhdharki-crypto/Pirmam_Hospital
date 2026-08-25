@@ -8,6 +8,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster as SonnerToaster } from "sonner";
 import { ThemeProvider } from "@/components/theme-provider";
+import { Analytics } from "@vercel/analytics/next";
 
 /* === Fonts === */
 const geistSans = Geist({
@@ -64,6 +65,7 @@ export default function RootLayout({
           {children}
           <SonnerToaster position="top-center" richColors closeButton />
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   );
