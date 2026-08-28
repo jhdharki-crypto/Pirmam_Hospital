@@ -39,6 +39,7 @@ import { HeroSection } from "@/components/hero-section";
 import { DepartmentsSection } from "@/components/departments-section";
 import { GallerySection } from "@/components/gallery-section";
 import { ArchiveSection } from "@/components/archive-section";
+import { LocationSection } from "@/components/location-section";
 import { Footer } from "@/components/footer";
 import { AdminPanel } from "@/components/admin-panel";
 
@@ -67,6 +68,9 @@ export default function Home() {
 
         {/* Archive Section (events, news, achievements with descriptions) */}
         <ArchiveSection />
+
+        {/* Hospital Location Section (Google Maps) */}
+        <LocationSection />
       </main>
 
       {/* Footer with contact info, social media, developer credit */}

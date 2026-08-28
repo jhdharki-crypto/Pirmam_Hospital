@@ -8,6 +8,7 @@ import {
   ImageIcon,
   Archive,
   Phone,
+  MapPin,
   Plus,
   Trash2,
   Upload,
@@ -1959,6 +1960,37 @@ export function AdminPanel() {
                 label="کاتەکانی کارکردن"
                 value={settings.workingHours || ""}
                 onChange={(v) => updateSetting("workingHours", v)}
+              />
+            </CardContent>
+          </Card>
+
+          {/* Location / Map */}
+          <Card className="glass rounded-xl border border-white/20 dark:border-gray-700/30">
+            <CardHeader className="p-4 pb-2">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-teal-600" />
+                شوێنی نەخۆشخانە
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-4 pt-2 space-y-3">
+              <SettingsField
+                label="لینکی Google Maps"
+                value={settings.mapLink || ""}
+                onChange={(v) => updateSetting("mapLink", v)}
+              />
+              <p className="text-[10px] text-gray-400 leading-relaxed">
+                لینکی شوێنی نەخۆشخانە لە Google Maps دابنێ، بۆ نموونە: https://www.google.com/maps/place/...
+              </p>
+              <SettingsField
+                label="سەردێڕی بەشی شوێن"
+                value={settings.locationSectionTitle || ""}
+                onChange={(v) => updateSetting("locationSectionTitle", v)}
+              />
+              <SettingsField
+                label="پێناسەی بەشی شوێن"
+                value={settings.locationSectionDesc || ""}
+                onChange={(v) => updateSetting("locationSectionDesc", v)}
+                multiline
               />
             </CardContent>
           </Card>
