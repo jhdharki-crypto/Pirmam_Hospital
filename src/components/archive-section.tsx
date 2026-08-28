@@ -70,7 +70,7 @@ export function ArchiveSection() {
   const lightboxImages = lightboxItem?.images || [];
   const lightboxCurrentUrl =
     lightboxImages.length > 0
-      ? lightboxImages[lightbox.imageIndex]?.url
+      ? lightboxImages[lightbox!.imageIndex]?.url
       : null;
 
   const lightboxPrev = () => {
