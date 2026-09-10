@@ -77,3 +77,4 @@ server.log
 /icons-check.png
 gallery-check.png
 /upload/db/custom.db.backup-* 
+package-lock.json 
