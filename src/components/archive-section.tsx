@@ -426,7 +426,7 @@ export function ArchiveSection() {
                                   <img
                                     src={img.url}
                                     alt={`${item.title} - ${i + 1}`}
-                                    className="w-full h-full object-cover"
+                                    className={`w-full h-full object-contain bg-gradient-to-br ${item.color}`}
                                   />
                                 </button>
                               ))}

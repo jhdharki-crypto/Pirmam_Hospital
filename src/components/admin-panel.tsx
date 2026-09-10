@@ -1247,7 +1247,7 @@ export function AdminPanel() {
                             <img
                               src={dept.image}
                               alt={dept.name}
-                              className="w-full h-full object-cover"
+                              className="w-full h-full object-contain bg-gray-100 dark:bg-gray-800"
                             />
                           </div>
                         )}
@@ -1447,7 +1447,7 @@ export function AdminPanel() {
                           <img
                             src={item.image}
                             alt={item.title}
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-contain bg-gray-100 dark:bg-gray-800"
                           />
                         </div>
                       )}
@@ -1892,7 +1892,7 @@ export function AdminPanel() {
                             <img
                               src={img.url}
                               alt={`وێنە ${imgIdx + 1}`}
-                              className="w-full h-full object-cover"
+                              className="w-full h-full object-contain bg-gray-100 dark:bg-gray-800"
                             />
                             {/* Delete button overlay */}
                             <button

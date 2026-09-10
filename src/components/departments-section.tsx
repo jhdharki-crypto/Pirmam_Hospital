@@ -202,7 +202,7 @@ export function DepartmentsSection() {
                     <img
                       src={dept.image}
                       alt={dept.name}
-                      className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      className="absolute inset-0 w-full h-full object-contain bg-gradient-to-br from-primary/10 to-medical-dark/10"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
                     <h3 className="absolute bottom-3 right-4 text-white text-base sm:text-lg font-bold">
