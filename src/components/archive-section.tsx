@@ -170,7 +170,7 @@ export function ArchiveSection() {
                           key={currentCarouselIdx}
                           src={item.images[currentCarouselIdx].url}
                           alt={item.title}
-                          className="w-full h-full object-cover cursor-pointer"
+                          className={`w-full h-full object-contain cursor-pointer bg-gradient-to-br ${item.color}`}
                           initial={{ opacity: 0, x: 50 }}
                           animate={{ opacity: 1, x: 0 }}
                           exit={{ opacity: 0, x: -50 }}
@@ -322,7 +322,7 @@ export function ArchiveSection() {
                                     item.images[currentCarouselIdx].url
                                   }
                                   alt={`${item.title} - ${currentCarouselIdx + 1}`}
-                                  className="w-full h-full object-cover rounded-xl"
+                                  className={`w-full h-full object-contain rounded-xl bg-gradient-to-br ${item.color}`}
                                   draggable={false}
                                 />
                                 {/* Zoom overlay */}

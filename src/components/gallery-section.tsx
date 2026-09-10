@@ -84,7 +84,7 @@ export function GallerySection() {
                 <img
                   src={image.image}
                   alt={image.title}
-                  className="absolute inset-0 w-full h-full object-cover"
+                  className={`absolute inset-0 w-full h-full object-contain bg-gradient-to-br ${image.color}`}
                 />
               ) : (
                 <div
@@ -189,7 +189,7 @@ export function GallerySection() {
                 <img
                   src={galleryItems[selectedImage].image!}
                   alt={galleryItems[selectedImage].title}
-                  className="aspect-video w-full rounded-2xl object-cover"
+                  className="w-auto max-w-full max-h-[75vh] rounded-2xl object-contain mx-auto"
                   draggable={false}
                 />
               ) : (
