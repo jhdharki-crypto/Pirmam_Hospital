@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { requireAdmin } from "@/lib/admin-auth";
 
 /* GET /api/admin/archive - List all archive items with images */
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const denied = await requireAdmin(request);
+  if (denied) return denied;
+
   try {
     const items = await db.archiveItem.findMany({
       orderBy: { order: "asc" },
@@ -17,6 +21,9 @@ export async function GET() {
 
 /* POST /api/admin/archive - Create a new archive item */
 export async function POST(request: NextRequest) {
+  const denied = await requireAdmin(request);
+  if (denied) return denied;
+
   try {
     const body = await request.json();
     const item = await db.archiveItem.create({
@@ -38,6 +45,9 @@ export async function POST(request: NextRequest) {
 
 /* PUT /api/admin/archive - Update an archive item */
 export async function PUT(request: NextRequest) {
+  const denied = await requireAdmin(request);
+  if (denied) return denied;
+
   try {
     const body = await request.json();
     const { id, ...data } = body;
@@ -53,6 +63,9 @@ export async function PUT(request: NextRequest) {
 
 /* DELETE /api/admin/archive - Delete an archive item (cascade deletes images) */
 export async function DELETE(request: NextRequest) {
+  const denied = await requireAdmin(request);
+  if (denied) return denied;
+
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");

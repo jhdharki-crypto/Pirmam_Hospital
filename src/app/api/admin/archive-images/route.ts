@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { requireAdmin } from "@/lib/admin-auth";
 
 /* GET /api/admin/archive-images?archiveItemId=xxx - Get all images for an archive item */
 export async function GET(request: NextRequest) {
+  const denied = await requireAdmin(request);
+  if (denied) return denied;
+
   try {
     const { searchParams } = new URL(request.url);
     const archiveItemId = searchParams.get("archiveItemId");
@@ -22,6 +26,9 @@ export async function GET(request: NextRequest) {
 
 /* POST /api/admin/archive-images - Add an image to an archive item */
 export async function POST(request: NextRequest) {
+  const denied = await requireAdmin(request);
+  if (denied) return denied;
+
   try {
     const body = await request.json();
     const { archiveItemId, url, order } = body;
@@ -40,6 +47,9 @@ export async function POST(request: NextRequest) {
 
 /* DELETE /api/admin/archive-images?id=xxx - Delete a single archive image */
 export async function DELETE(request: NextRequest) {
+  const denied = await requireAdmin(request);
+  if (denied) return denied;
+
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");

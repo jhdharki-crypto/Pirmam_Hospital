@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { stripSensitiveSettings } from "@/lib/admin-auth";
 import fs from "fs";
 import path from "path";
 
@@ -7,10 +8,7 @@ import path from "path";
 export async function GET() {
   try {
     const settings = await db.siteSetting.findMany();
-    const settingsMap: Record<string, string> = {};
-    settings.forEach((s) => {
-      settingsMap[s.key] = s.value;
-    });
+    const settingsMap = stripSensitiveSettings(settings);
 
     const departments = await db.department.findMany({ orderBy: { order: "asc" } });
     const galleryItems = await db.galleryItem.findMany({ orderBy: { order: "asc" } });

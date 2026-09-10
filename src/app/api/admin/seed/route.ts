@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { requireAdmin } from "@/lib/admin-auth";
 
 /* ============================================================
    POST /api/admin/seed - Seed database with default content
@@ -47,7 +48,10 @@ const DEFAULT_SETTINGS: Record<string, string> = {
   navLabelDepartments: "بەشەکان",
   navLabelGallery: "گەلەری",
   navLabelArchive: "ئەرشیف و هەواڵی نەخۆشخانە",
-  adminPassword: "jihadpirmam223355",
+  /* Bootstrap value for fresh databases only - safe seed never overwrites
+     an existing password, and login hashes it on first use. Change it
+     after any full reset (?reset=true). */
+  adminPassword: "pirmam-hospital",
 };
 
 const DEFAULT_DEPARTMENTS = [
@@ -149,6 +153,9 @@ async function safeSeed() {
 
 /* ========== MAIN HANDLER ========== */
 export async function POST(request: NextRequest) {
+  const denied = await requireAdmin(request);
+  if (denied) return denied;
+
   try {
     const { searchParams } = new URL(request.url);
     const isReset = searchParams.get("reset") === "true";

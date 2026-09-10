@@ -32,6 +32,7 @@ import {
   Loader2,
   ShieldCheck,
   PenSquare,
+  LogOut,
   /* --- New medical icons --- */
   BrainCircuit,
   ScanHeart,
@@ -326,7 +327,6 @@ export function AdminPanel() {
   const [authenticated, setAuthenticated] = useState(false);
   const [passwordInput, setPasswordInput] = useState("");
   const [passwordLoading, setPasswordLoading] = useState(false);
-  const [adminPassword, setAdminPassword] = useState("jihadpirmam223355");
 
   /* Secret admin access: Ctrl+Shift+A keyboard shortcut */
   React.useEffect(() => {
@@ -371,17 +371,16 @@ export function AdminPanel() {
      PASSWORD & AUTH
      ============================ */
 
-  const fetchAdminPassword = useCallback(async () => {
+  /* Check the httpOnly session cookie via the server - lets an
+     already-logged-in admin skip the password screen. */
+  const checkSession = useCallback(async () => {
     try {
-      const res = await fetch("/api/admin/content");
-      if (res.ok) {
-        const data = await res.json();
-        if (data.adminPassword) {
-          setAdminPassword(data.adminPassword);
-        }
-      }
+      const res = await fetch("/api/admin/auth-login");
+      if (!res.ok) return false;
+      const data = await res.json();
+      return Boolean(data.authenticated);
     } catch {
-      /* Use default password */
+      return false;
     }
   }, []);
 
@@ -467,11 +466,16 @@ export function AdminPanel() {
     [fetchSettings, fetchDepartments, fetchGallery, fetchArchive]
   );
 
-  /* Handle sheet open - fetch password if not authenticated */
+  /* Handle sheet open - check the server session when not yet authenticated */
   async function handleOpenChange(isOpen: boolean) {
     setOpen(isOpen);
     if (isOpen && !authenticated) {
-      await fetchAdminPassword();
+      const isLoggedIn = await checkSession();
+      if (isLoggedIn) {
+        setAuthenticated(true);
+        fetchTabData(activeTab);
+        return;
+      }
     }
     if (isOpen && authenticated) {
       fetchTabData(activeTab);
@@ -484,24 +488,44 @@ export function AdminPanel() {
     fetchTabData(tab);
   }
 
+  /* Login is verified 100% server-side; the client only learns
+     success/failure. Wrong attempts are rate limited by the server. */
   async function handlePasswordSubmit(e: React.FormEvent) {
     e.preventDefault();
     setPasswordLoading(true);
 
-    await fetchAdminPassword();
+    try {
+      const res = await fetch("/api/admin/auth-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: passwordInput }),
+      });
+      const data = await res.json().catch(() => ({}));
 
-    setTimeout(() => {
-      if (passwordInput === adminPassword) {
+      if (res.ok) {
         setAuthenticated(true);
         setPasswordInput("");
         toast.success("بە سەرکەوتوویی چوویتەژوورەوە");
         fetchTabData(activeTab);
       } else {
         setPasswordInput("");
-        toast.error("وشەی نهێنی هەڵەیە");
+        toast.error(data.error || "وشەی نهێنی هەڵەیە");
       }
-      setPasswordLoading(false);
-    }, 200);
+    } catch {
+      toast.error("هەڵەیەک ڕوویدا لە پەیوەندی بە سێرڤەر");
+    }
+    setPasswordLoading(false);
+  }
+
+  async function handleLogout() {
+    try {
+      await fetch("/api/admin/auth-login", { method: "DELETE" });
+    } catch {
+      /* Clear local state even if the request fails */
+    }
+    setAuthenticated(false);
+    setOpen(false);
+    toast.success("دەرچوویت لە پانێڵ");
   }
 
   /* ============================
@@ -685,12 +709,70 @@ export function AdminPanel() {
      IMAGE UPLOAD
      ============================ */
 
+  /* Read the EXIF orientation tag (0x0112) from a JPEG file.
+     1 = normal, 2-8 = rotated/flipped by the camera. Returns 1 for
+     non-JPEG files or when no EXIF orientation is present. */
+  async function getJpegOrientation(file: File): Promise<number> {
+    try {
+      const buf = new Uint8Array(await file.slice(0, 128 * 1024).arrayBuffer());
+      if (buf[0] !== 0xff || buf[1] !== 0xd8) return 1; // not a JPEG
+      let off = 2;
+      while (off + 4 < buf.length) {
+        if (buf[off] !== 0xff) {
+          off++;
+          continue;
+        }
+        const marker = buf[off + 1];
+        // Standalone markers without a length field
+        if (marker === 0xd8 || marker === 0x01 || (marker >= 0xd0 && marker <= 0xd7) || marker === 0xd9) {
+          off += 2;
+          continue;
+        }
+        const size = (buf[off + 2] << 8) | buf[off + 3];
+        if (marker === 0xe1 && off + 10 <= buf.length) {
+          // APP1 segment holding "Exif\0\0"
+          const isExif =
+            buf[off + 4] === 0x45 && buf[off + 5] === 0x78 &&
+            buf[off + 6] === 0x69 && buf[off + 7] === 0x66 &&
+            buf[off + 8] === 0x00 && buf[off + 9] === 0x00;
+          if (isExif) {
+            const tiff = off + 10;
+            const little = buf[tiff] === 0x49; // "II" vs "MM"
+            const u16 = (p: number) =>
+              little ? buf[p] | (buf[p + 1] << 8) : (buf[p] << 8) | buf[p + 1];
+            const u32 = (p: number) =>
+              little
+                ? (buf[p] | (buf[p + 1] << 8) | (buf[p + 2] << 16) | (buf[p + 3] << 24)) >>> 0
+                : ((buf[p] << 24) | (buf[p + 1] << 16) | (buf[p + 2] << 8) | buf[p + 3]) >>> 0;
+            if (tiff + 8 <= buf.length) {
+              const ifdOff = tiff + u32(tiff + 4);
+              if (ifdOff + 2 <= buf.length) {
+                const entries = u16(ifdOff);
+                for (let i = 0; i < entries && ifdOff + 2 + i * 12 + 12 <= buf.length; i++) {
+                  const entry = ifdOff + 2 + i * 12;
+                  if (u16(entry) === 0x0112) return u16(entry + 8) || 1;
+                }
+              }
+            }
+          }
+        }
+        off += 2 + size;
+      }
+    } catch {
+      /* Unreadable EXIF - treat as unrotated */
+    }
+    return 1;
+  }
+
   /* Convert file to base64.
-     Small files (<2MB) → FileReader directly (most reliable).
-     Larger files → compress with createImageBitmap + Canvas to fit within server limits.
+     Unrotated files <2MB → FileReader directly (most reliable, original bytes).
+     Rotated JPEGs (EXIF orientation 2-8) → ALWAYS re-encoded with the
+     orientation baked in, so every browser shows the picture upright.
+     Larger files → compress with createImageBitmap + Canvas.
      If compression fails → fall back to FileReader. */
-  function fileToBase64(file: File): Promise<string> {
-    if (file.size <= 2 * 1024 * 1024) {
+  async function fileToBase64(file: File): Promise<string> {
+    const orientation = await getJpegOrientation(file);
+    if (file.size <= 2 * 1024 * 1024 && orientation <= 1) {
       return readAsDataURL(file);
     }
     return compressThenBase64(file).catch(() => readAsDataURL(file));
@@ -713,9 +795,11 @@ export function AdminPanel() {
   }
 
   /* Compress a large image using createImageBitmap + Canvas.
-     Much more reliable than new Image() + URL.createObjectURL */
+     imageOrientation: "from-image" applies the camera's EXIF rotation
+     while decoding, so the re-encoded JPEG is stored upright and shows
+     in its original orientation everywhere. */
   async function compressThenBase64(file: File): Promise<string> {
-    const bitmap = await createImageBitmap(file);
+    const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
     try {
       const canvas = document.createElement("canvas");
       let w = bitmap.width;
@@ -2070,15 +2154,28 @@ export function AdminPanel() {
             <div className="flex flex-col h-full">
               {/* Header */}
               <SheetHeader className="p-4 pb-0 shrink-0">
-                <SheetTitle className="text-lg font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-teal-100 dark:bg-teal-900/30 flex items-center justify-center">
-                    <ShieldCheck className="w-4 h-4 text-teal-600" />
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <SheetTitle className="text-lg font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-lg bg-teal-100 dark:bg-teal-900/30 flex items-center justify-center">
+                        <ShieldCheck className="w-4 h-4 text-teal-600" />
+                      </div>
+                      پانێلی بەڕێوەبەر
+                    </SheetTitle>
+                    <SheetDescription className="text-xs text-gray-500">
+                      ئێرە دەتوانیت هەموو بابەتەکانی وێبسایت بەڕێوەبەری بکەیت
+                    </SheetDescription>
                   </div>
-                  پانێلی بەڕێوەبەر
-                </SheetTitle>
-                <SheetDescription className="text-xs text-gray-500">
-                  ئێرە دەتوانیت هەموو بابەتەکانی وێبسایت بەڕێوەبەری بکەیت
-                </SheetDescription>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleLogout}
+                    className="shrink-0 text-xs"
+                  >
+                    <LogOut className="w-3.5 h-3.5 ml-1" />
+                    دەرچوون
+                  </Button>
+                </div>
               </SheetHeader>
 
               {/* Tabs */}

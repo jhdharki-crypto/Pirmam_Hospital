@@ -1,0 +1,67 @@
+// Local development schema (SQLite). This file is identical to
+// schema.prisma except for the datasource - schema.prisma must stay on
+// postgresql because that is what production (Vercel + Neon) uses.
+//
+// Local usage:
+//   npm run generate:local   (regenerate the Prisma Client for SQLite)
+//   npm run db:push:local    (sync local schema to db/custom.db)
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:../db/custom.db"
+}
+
+model SiteSetting {
+  id    String @id @default(cuid())
+  key   String @unique
+  value String
+}
+
+model Department {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  iconName    String   @default("HeartPulse")
+  image       String?
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model GalleryItem {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  image       String?
+  color       String   @default("from-teal-600/80 to-emerald-700/80")
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ArchiveItem {
+  id          String        @id @default(cuid())
+  title       String
+  description String
+  date        String
+  category    String
+  color       String        @default("from-amber-600/70 to-orange-700/70")
+  order       Int           @default(0)
+  images      ArchiveImage[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model ArchiveImage {
+  id            String      @id @default(cuid())
+  url           String
+  order         Int         @default(0)
+  archiveItem   ArchiveItem @relation(fields: [archiveItemId], references: [id], onDelete: Cascade)
+  archiveItemId String
+  createdAt     DateTime    @default(now())
+}

@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { requireAdmin } from "@/lib/admin-auth";
 
 /* GET /api/admin/departments - List all departments */
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const denied = await requireAdmin(request);
+  if (denied) return denied;
+
   try {
     const departments = await db.department.findMany({ orderBy: { order: "asc" } });
     return NextResponse.json(departments);
@@ -14,6 +18,9 @@ export async function GET() {
 
 /* POST /api/admin/departments - Create a new department */
 export async function POST(request: NextRequest) {
+  const denied = await requireAdmin(request);
+  if (denied) return denied;
+
   try {
     const body = await request.json();
     const department = await db.department.create({
@@ -34,6 +41,9 @@ export async function POST(request: NextRequest) {
 
 /* PUT /api/admin/departments - Update a department */
 export async function PUT(request: NextRequest) {
+  const denied = await requireAdmin(request);
+  if (denied) return denied;
+
   try {
     const body = await request.json();
     const { id, ...data } = body;
@@ -52,6 +62,9 @@ export async function PUT(request: NextRequest) {
 
 /* DELETE /api/admin/departments - Delete a department */
 export async function DELETE(request: NextRequest) {
+  const denied = await requireAdmin(request);
+  if (denied) return denied;
+
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");

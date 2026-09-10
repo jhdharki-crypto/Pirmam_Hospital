@@ -168,7 +168,7 @@ export function Footer() {
               © {new Date().getFullYear()} {hospitalNameKu}. هەموو مافەکان پارێزراون. ئەم ماڵپەڕە تایبەتە بە نەخۆشخانەی پیرمام.
             </div>
             <div className="text-[10px] sm:text-[11px] opacity-60">
-              Developed by Jihad Salah Azeez
+              Developed by J&amp;M Digital
             </div>
           </div>
         </div>
