@@ -5,7 +5,8 @@
 
 "use client";
 
-import { motion } from "framer-motion";
+import { useEffect, useMemo, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   HeartPulse,
   ShieldCheck,
@@ -39,6 +40,34 @@ export function HeroSection() {
   const heroDescription = getSetting("heroDescription");
   const heroBadge = getSetting("heroBadge");
 
+  /* Hospital photos managed from the admin panel (Hero tab).
+     Stored as a JSON array of image URLs/base64 in the "heroImages" setting. */
+  const heroImagesRaw = getSetting("heroImages");
+  const heroImages = useMemo(() => {
+    try {
+      const parsed = heroImagesRaw ? (JSON.parse(heroImagesRaw) as unknown) : [];
+      return Array.isArray(parsed)
+        ? parsed.filter((u): u is string => typeof u === "string" && u.length > 0)
+        : [];
+    } catch {
+      return [];
+    }
+  }, [heroImagesRaw]);
+
+  /* Auto-advance the slideshow */
+  const [heroIndex, setHeroIndex] = useState(0);
+  useEffect(() => {
+    if (heroImages.length <= 1) return;
+    const t = setInterval(
+      () => setHeroIndex((i) => (i + 1) % heroImages.length),
+      6000
+    );
+    return () => clearInterval(t);
+  }, [heroImages.length]);
+  const currentHeroImage = heroImages.length
+    ? heroImages[heroIndex % heroImages.length]
+    : null;
+
   const heroStats = [
     { icon: statIcons[0], value: getSetting("stat1Value"), label: getSetting("stat1Label") },
     { icon: statIcons[1], value: getSetting("stat2Value"), label: getSetting("stat2Label") },
@@ -70,8 +99,9 @@ export function HeroSection() {
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 text-center"
+        className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 w-full flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-12"
       >
+        <div className="flex-1 text-center w-full min-w-0">
         {/* Hospital badge */}
         <motion.div variants={itemVariants} className="mb-6">
           <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs sm:text-sm font-medium bg-primary/10 text-primary border border-primary/20">
@@ -126,6 +156,49 @@ export function HeroSection() {
             </div>
           ))}
         </motion.div>
+        </div>
+
+        {/* === HOSPITAL PHOTOS (managed in admin panel, shown in full) === */}
+        {currentHeroImage && (
+          <motion.div
+            variants={itemVariants}
+            className="w-full lg:w-[44%] max-w-md shrink-0"
+          >
+            <div className="relative rounded-3xl overflow-hidden ring-1 ring-primary/20 shadow-2xl shadow-primary/10 bg-gradient-to-br from-primary/10 via-background to-medical-dark/10">
+              <div className="relative aspect-[4/3] w-full">
+                <AnimatePresence mode="wait">
+                  <motion.img
+                    key={currentHeroImage}
+                    src={currentHeroImage}
+                    alt={heroTitle}
+                    className="absolute inset-0 w-full h-full object-contain"
+                    initial={{ opacity: 0, scale: 1.03 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.6, ease: "easeOut" }}
+                    draggable={false}
+                  />
+                </AnimatePresence>
+              </div>
+              {heroImages.length > 1 && (
+                <div className="flex justify-center gap-1.5 pb-3">
+                  {heroImages.map((_, i) => (
+                    <button
+                      key={i}
+                      aria-label={`وێنە ${i + 1}`}
+                      className={`h-2 rounded-full transition-all duration-200 ${
+                        i === heroIndex % heroImages.length
+                          ? "bg-primary w-6"
+                          : "bg-primary/25 w-2 hover:bg-primary/40"
+                      }`}
+                      onClick={() => setHeroIndex(i)}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
       </motion.div>
 
       {/* Bottom fade */}

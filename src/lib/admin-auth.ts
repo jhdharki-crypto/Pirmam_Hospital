@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { rateLimit, requestIp, tooManyRequests, RATE_LIMITS } from "@/lib/rate-limit";
 
 /* ============================================================
    Server-side admin authentication.
@@ -105,10 +106,24 @@ async function verifySessionToken(
 }
 
 /* Returns a 401 response when the request is not an authenticated admin,
-   or null when the request may proceed. */
+   a 429 when the client exceeds the admin request limit, or null when the
+   request may proceed. */
 export async function requireAdmin(
   request: NextRequest
 ): Promise<NextResponse | null> {
+  const rl = rateLimit(
+    `admin:${requestIp(request)}`,
+    RATE_LIMITS.admin.limit,
+    RATE_LIMITS.admin.windowMs
+  );
+  if (!rl.ok) {
+    const res = NextResponse.json(
+      { error: "داواکاری زۆر زۆرە. تکایە دواتر هەوڵ بدەوە." },
+      { status: 429 }
+    );
+    res.headers.set("Retry-After", String(rl.retryAfterSec));
+    return res;
+  }
   const token = request.cookies.get(ADMIN_COOKIE)?.value;
   if (await verifySessionToken(token)) return null;
   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

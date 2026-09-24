@@ -956,6 +956,97 @@ export function AdminPanel() {
   }
 
   /* ============================
+     HERO IMAGES (slideshow in the hero section)
+     ============================ */
+
+  function parseHeroImages(): string[] {
+    try {
+      const parsed = JSON.parse(settings.heroImages || "[]") as unknown;
+      return Array.isArray(parsed)
+        ? parsed.filter((u): u is string => typeof u === "string" && u.length > 0)
+        : [];
+    } catch {
+      return [];
+    }
+  }
+
+  /* Save a full settings object immediately (used by hero image changes) */
+  async function persistSettings(next: Record<string, string>): Promise<boolean> {
+    setSaving(true);
+    try {
+      const res = await fetch("/api/admin/content", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ settings: next }),
+      });
+      if (res.ok) {
+        setSettings(next);
+        await refetch();
+        return true;
+      }
+      toast.error("هەڵەیەک ڕوویدا لە تۆمارکردن");
+      return false;
+    } catch {
+      toast.error("هەڵەیەک ڕوویدا لە تۆمارکردن");
+      return false;
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  /* Upload one or more hero photos; each is saved immediately */
+  async function handleHeroImagesUpload(
+    e: React.ChangeEvent<HTMLInputElement>
+  ) {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    let next = parseHeroImages();
+    const before = next.length;
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error(`فایلی ${file.name} زۆر گەورەیە (max 10MB)`);
+        continue;
+      }
+      try {
+        toast.loading(`بارکردنی وێنە ${i + 1}...`);
+        const url = await fileToBase64(file);
+        next = [...next, url];
+        toast.dismiss();
+      } catch {
+        toast.dismiss();
+        toast.error(`هەڵە لە بارکردنی ${file.name}`);
+      }
+    }
+
+    if (next.length !== before) {
+      const ok = await persistSettings({
+        ...settings,
+        heroImages: JSON.stringify(next),
+      });
+      if (ok) {
+        toast.success(
+          next.length - before === 1
+            ? "وێنەکە زیادکرا ✅"
+            : `${next.length - before} وێنە زیادکران ✅`
+        );
+      }
+    }
+    e.target.value = "";
+  }
+
+  async function removeHeroImage(index: number) {
+    const next = parseHeroImages().filter((_, i) => i !== index);
+    const ok = await persistSettings({
+      ...settings,
+      heroImages: JSON.stringify(next),
+    });
+    if (ok) toast.success("وێنەکە سڕایەوە");
+  }
+
+  /* ============================
      PASSWORD SCREEN
      ============================ */
 
@@ -1054,6 +1145,56 @@ export function AdminPanel() {
             value={settings.heroBadge || ""}
             onChange={(v) => updateSetting("heroBadge", v)}
           />
+
+          {/* Hero photos slideshow (shown next to the hero text) */}
+          <Separator />
+          <h3 className="font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+            <ImageIcon className="w-4 h-4 text-teal-600" />
+            وێنەکانی نەخۆشخانە لە بەشی سەرەکی
+          </h3>
+          <p className="text-xs text-gray-500 dark:text-gray-400 -mt-3">
+            ئەم وێنانە لە تەنیشت نووسینەکانی سەرەوە بە شێوەی سلاید پیشان دەدرێن. وێنە بە تەواوی دەردەکەوێت.
+          </p>
+          {parseHeroImages().length > 0 && (
+            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+              {parseHeroImages().map((url, i) => (
+                <div
+                  key={i}
+                  className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 group/hero"
+                >
+                  <img
+                    src={url}
+                    alt={`وێنەی سەرەکی ${i + 1}`}
+                    className="w-full h-full object-contain bg-gray-100 dark:bg-gray-800"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeHeroImage(i)}
+                    className="absolute top-1 left-1 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover/hero:opacity-100 transition-opacity hover:bg-red-600"
+                    title="سڕینەوە"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                  <div className="absolute bottom-1 right-1 bg-black/50 text-white text-[9px] px-1 rounded">
+                    {i + 1}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          <label className="inline-flex items-center justify-center cursor-pointer">
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              className="sr-only"
+              onChange={handleHeroImagesUpload}
+            />
+            <span className="inline-flex items-center gap-1 rounded-md border border-input bg-background px-3 py-1.5 text-xs font-medium ring-offset-background transition-colors hover:bg-accent hover:text-accent-foreground">
+              <Upload className="w-3.5 h-3.5" />
+              زیادکردنی وێنە (یەک یان چەند وێنە)
+            </span>
+          </label>
 
           <Separator />
 

@@ -1,11 +1,19 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { stripSensitiveSettings } from "@/lib/admin-auth";
+import { rateLimit, requestIp, tooManyRequests, RATE_LIMITS } from "@/lib/rate-limit";
 import fs from "fs";
 import path from "path";
 
 /* GET /api/content - Returns all site content for the public-facing website */
-export async function GET() {
+export async function GET(request: Request) {
+  const rl = rateLimit(
+    `content:${requestIp(request)}`,
+    RATE_LIMITS.publicContent.limit,
+    RATE_LIMITS.publicContent.windowMs
+  );
+  if (!rl.ok) return tooManyRequests(rl.retryAfterSec);
+
   try {
     const settings = await db.siteSetting.findMany();
     const settingsMap = stripSensitiveSettings(settings);

@@ -17,9 +17,10 @@ async function main() {
   for (const [key, value] of Object.entries(liveSettings)) {
     await db.siteSetting.upsert({ where: { key }, update: { value }, create: { key, value } });
   }
-  // Remove local-only keys (keep local adminPassword and the adminSecret
-  // that salted its hash untouched - deleting the secret breaks login)
-  const KEEP_LOCAL = new Set(["adminPassword", "adminSecret"]);
+  // Remove local-only keys (keep local adminPassword, the adminSecret that
+  // salted its hash, and local heroImages untouched - deleting them breaks
+  // login or deletes photos that are not on live yet)
+  const KEEP_LOCAL = new Set(["adminPassword", "adminSecret", "heroImages"]);
   const localSettings = await db.siteSetting.findMany();
   for (const s of localSettings) {
     if (!(s.key in liveSettings) && !KEEP_LOCAL.has(s.key)) {
