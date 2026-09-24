@@ -11,6 +11,7 @@ import { motion, AnimatePresence, type PanInfo } from "framer-motion";
 import { X, ZoomIn, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useContent } from "@/lib/content-store";
+import { Tilt3D } from "@/components/tilt-3d";
 
 const SWIPE_THRESHOLD = 50;
 
@@ -71,13 +72,14 @@ export function GallerySection() {
         {/* === GALLERY GRID === */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {galleryItems.map((image, index) => (
+            <Tilt3D key={image.id} className="aspect-[4/3] rounded-2xl" max={8}>
             <motion.div
-              key={image.id}
               initial={{ opacity: 0, scale: 0.95 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true, margin: "-50px" }}
               transition={{ duration: 0.4, delay: index * 0.08 }}
-              className="group relative aspect-[4/3] rounded-2xl overflow-hidden cursor-pointer"
+              whileTap={{ scale: 0.97 }}
+              className="group relative h-full w-full rounded-2xl overflow-hidden cursor-pointer"
               onClick={() => setSelectedImage(index)}
             >
               {image.image ? (
@@ -112,6 +114,7 @@ export function GallerySection() {
                 </p>
               </div>
             </motion.div>
+            </Tilt3D>
           ))}
         </div>
       </div>
@@ -174,10 +177,11 @@ export function GallerySection() {
             {/* Swipeable image */}
             <motion.div
               key={selectedImage}
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
-              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              initial={{ scale: 0.8, opacity: 0, rotateX: -35 }}
+              animate={{ scale: 1, opacity: 1, rotateX: 0 }}
+              exit={{ scale: 0.85, opacity: 0, rotateX: 25 }}
+              transition={{ type: "spring", damping: 24, stiffness: 280 }}
+              style={{ transformPerspective: 1200 }}
               drag={total > 1 ? "x" : false}
               dragConstraints={{ left: 0, right: 0 }}
               dragElastic={0.1}

@@ -59,6 +59,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useContent } from "@/lib/content-store";
+import { Tilt3D } from "@/components/tilt-3d";
 
 /* Icon mapping from name string to component — comprehensive medical icon set */
 const iconMap: Record<string, LucideIcon> = {
@@ -198,17 +199,19 @@ export function DepartmentsSection() {
               >
                 {/* Department image or icon */}
                 {dept.image ? (
-                  <div className="relative aspect-[16/10] overflow-hidden">
-                    <img
-                      src={dept.image}
-                      alt={dept.name}
-                      className="absolute inset-0 w-full h-full object-contain bg-gradient-to-br from-primary/10 to-medical-dark/10"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-                    <h3 className="absolute bottom-3 right-4 text-white text-base sm:text-lg font-bold">
-                      {dept.name}
-                    </h3>
-                  </div>
+                  <Tilt3D className="aspect-[16/10]" max={7}>
+                    <div className="relative h-full w-full overflow-hidden">
+                      <img
+                        src={dept.image}
+                        alt={dept.name}
+                        className="absolute inset-0 w-full h-full object-contain bg-gradient-to-br from-primary/10 to-medical-dark/10"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+                      <h3 className="absolute bottom-3 right-4 text-white text-base sm:text-lg font-bold">
+                        {dept.name}
+                      </h3>
+                    </div>
+                  </Tilt3D>
                 ) : (
                   <div className="p-5 sm:p-6">
                     <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl bg-gradient-to-br from-primary/15 to-medical-dark/10 flex items-center justify-center mb-4 group-hover:from-primary/25 group-hover:to-medical-dark/20 transition-colors">

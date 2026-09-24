@@ -26,6 +26,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useContent } from "@/lib/content-store";
+import { Tilt3D } from "@/components/tilt-3d";
 
 /* Category icon mapping */
 const categoryIconMap: Record<string, LucideIcon> = {
@@ -288,6 +289,7 @@ export function ArchiveSection() {
                       className="overflow-hidden"
                     >
                       <div className="px-4 sm:px-6 pb-4 sm:pb-6">
+                        <Tilt3D max={6}>
                         <div className="relative">
                           {/* Main carousel image */}
                           <div className="overflow-hidden rounded-xl">
@@ -433,6 +435,7 @@ export function ArchiveSection() {
                             </div>
                           )}
                         </div>
+                        </Tilt3D>
                       </div>
                     </motion.div>
                   )}
@@ -500,10 +503,11 @@ export function ArchiveSection() {
             {/* Swipeable image */}
             <motion.div
               key={lightbox.imageIndex}
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              initial={{ scale: 0.85, opacity: 0, rotateX: -30 }}
+              animate={{ scale: 1, opacity: 1, rotateX: 0 }}
+              exit={{ scale: 0.9, opacity: 0, rotateX: 20 }}
+              transition={{ type: "spring", damping: 24, stiffness: 280 }}
+              style={{ transformPerspective: 1200 }}
               drag={lightboxImages.length > 1 ? "x" : false}
               dragConstraints={{ left: 0, right: 0 }}
               dragElastic={0.1}

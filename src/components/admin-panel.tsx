@@ -1153,7 +1153,7 @@ export function AdminPanel() {
             وێنەکانی نەخۆشخانە لە بەشی سەرەکی
           </h3>
           <p className="text-xs text-gray-500 dark:text-gray-400 -mt-3">
-            ئەم وێنانە لە تەنیشت نووسینەکانی سەرەوە بە شێوەی سلاید پیشان دەدرێن. وێنە بە تەواوی دەردەکەوێت.
+            ئەم وێنانە وەک پاشبنەمای تەواوی بەشی سەرەکی (هیرو) پیشان دەدرێن و بە شێوەی سلاید دەگۆڕدرێن.
           </p>
           {parseHeroImages().length > 0 && (
             <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
@@ -2329,35 +2329,35 @@ export function AdminPanel() {
                   <TabsList className="w-full h-auto flex-wrap gap-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-xl">
                     <TabsTrigger
                       value="hero"
-                      className="flex-1 min-w-0 text-xs py-2 rounded-lg data-[state=active]:bg-teal-600 data-[state=active]:text-white data-[state=active]:shadow-md"
+                      className="flex-1 min-w-0 text-xs py-2 rounded-lg transition-transform duration-200 hover:-translate-y-0.5 active:scale-95 active:translate-y-0 will-change-transform data-[state=active]:bg-teal-600 data-[state=active]:text-white data-[state=active]:shadow-md"
                     >
                       <HeartPulse className="w-3.5 h-3.5 ml-1 hidden sm:block" />
                       <span className="truncate">بەشە سەرەکی</span>
                     </TabsTrigger>
                     <TabsTrigger
                       value="departments"
-                      className="flex-1 min-w-0 text-xs py-2 rounded-lg data-[state=active]:bg-teal-600 data-[state=active]:text-white data-[state=active]:shadow-md"
+                      className="flex-1 min-w-0 text-xs py-2 rounded-lg transition-transform duration-200 hover:-translate-y-0.5 active:scale-95 active:translate-y-0 will-change-transform data-[state=active]:bg-teal-600 data-[state=active]:text-white data-[state=active]:shadow-md"
                     >
                       <Stethoscope className="w-3.5 h-3.5 ml-1 hidden sm:block" />
                       <span className="truncate">بەشەکان</span>
                     </TabsTrigger>
                     <TabsTrigger
                       value="gallery"
-                      className="flex-1 min-w-0 text-xs py-2 rounded-lg data-[state=active]:bg-teal-600 data-[state=active]:text-white data-[state=active]:shadow-md"
+                      className="flex-1 min-w-0 text-xs py-2 rounded-lg transition-transform duration-200 hover:-translate-y-0.5 active:scale-95 active:translate-y-0 will-change-transform data-[state=active]:bg-teal-600 data-[state=active]:text-white data-[state=active]:shadow-md"
                     >
                       <ImageIcon className="w-3.5 h-3.5 ml-1 hidden sm:block" />
                       <span className="truncate">گەلەری</span>
                     </TabsTrigger>
                     <TabsTrigger
                       value="archive"
-                      className="flex-1 min-w-0 text-xs py-2 rounded-lg data-[state=active]:bg-teal-600 data-[state=active]:text-white data-[state=active]:shadow-md"
+                      className="flex-1 min-w-0 text-xs py-2 rounded-lg transition-transform duration-200 hover:-translate-y-0.5 active:scale-95 active:translate-y-0 will-change-transform data-[state=active]:bg-teal-600 data-[state=active]:text-white data-[state=active]:shadow-md"
                     >
                       <Archive className="w-3.5 h-3.5 ml-1 hidden sm:block" />
                       <span className="truncate">ئەرشیف و هەواڵ</span>
                     </TabsTrigger>
                     <TabsTrigger
                       value="contact"
-                      className="flex-1 min-w-0 text-xs py-2 rounded-lg data-[state=active]:bg-teal-600 data-[state=active]:text-white data-[state=active]:shadow-md"
+                      className="flex-1 min-w-0 text-xs py-2 rounded-lg transition-transform duration-200 hover:-translate-y-0.5 active:scale-95 active:translate-y-0 will-change-transform data-[state=active]:bg-teal-600 data-[state=active]:text-white data-[state=active]:shadow-md"
                     >
                       <Phone className="w-3.5 h-3.5 ml-1 hidden sm:block" />
                       <span className="truncate">پەیوەندی</span>

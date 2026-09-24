@@ -94,14 +94,54 @@ export function HeroSection() {
         />
       </div>
 
+      {/* === HOSPITAL PHOTOS AS FULL BACKGROUND (managed in admin panel) === */}
+      {currentHeroImage && (
+        <div className="absolute inset-0 z-0 overflow-hidden">
+          <AnimatePresence>
+            <motion.img
+              key={currentHeroImage}
+              src={currentHeroImage}
+              alt={heroTitle}
+              className="absolute inset-0 w-full h-full object-cover"
+              initial={{ opacity: 0, scale: 1.12 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 1.05 }}
+              transition={{
+                opacity: { duration: 1.4, ease: "easeOut" },
+                scale: { duration: 8, ease: "linear" },
+              }}
+              draggable={false}
+            />
+          </AnimatePresence>
+          {/* Readability scrims - theme-aware so text stays crisp in light & dark */}
+          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-background/25" />
+          <div className="absolute inset-0 bg-black/10 dark:bg-black/35" />
+          {heroImages.length > 1 && (
+            <div className="absolute bottom-24 left-1/2 -translate-x-1/2 z-20 flex gap-2">
+              {heroImages.map((_, i) => (
+                <button
+                  key={i}
+                  aria-label={`وێنە ${i + 1}`}
+                  className={`h-2 rounded-full transition-all duration-200 ${
+                    i === heroIndex % heroImages.length
+                      ? "bg-primary w-6"
+                      : "bg-primary/40 w-2 hover:bg-primary/60"
+                  }`}
+                  onClick={() => setHeroIndex(i)}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* === MAIN HERO CONTENT === */}
       <motion.div
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 w-full flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-12"
+        className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 text-center w-full"
       >
-        <div className="flex-1 text-center w-full min-w-0">
         {/* Hospital badge */}
         <motion.div variants={itemVariants} className="mb-6">
           <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs sm:text-sm font-medium bg-primary/10 text-primary border border-primary/20">
@@ -156,49 +196,6 @@ export function HeroSection() {
             </div>
           ))}
         </motion.div>
-        </div>
-
-        {/* === HOSPITAL PHOTOS (managed in admin panel, shown in full) === */}
-        {currentHeroImage && (
-          <motion.div
-            variants={itemVariants}
-            className="w-full lg:w-[44%] max-w-md shrink-0"
-          >
-            <div className="relative rounded-3xl overflow-hidden ring-1 ring-primary/20 shadow-2xl shadow-primary/10 bg-gradient-to-br from-primary/10 via-background to-medical-dark/10">
-              <div className="relative aspect-[4/3] w-full">
-                <AnimatePresence mode="wait">
-                  <motion.img
-                    key={currentHeroImage}
-                    src={currentHeroImage}
-                    alt={heroTitle}
-                    className="absolute inset-0 w-full h-full object-contain"
-                    initial={{ opacity: 0, scale: 1.03 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.6, ease: "easeOut" }}
-                    draggable={false}
-                  />
-                </AnimatePresence>
-              </div>
-              {heroImages.length > 1 && (
-                <div className="flex justify-center gap-1.5 pb-3">
-                  {heroImages.map((_, i) => (
-                    <button
-                      key={i}
-                      aria-label={`وێنە ${i + 1}`}
-                      className={`h-2 rounded-full transition-all duration-200 ${
-                        i === heroIndex % heroImages.length
-                          ? "bg-primary w-6"
-                          : "bg-primary/25 w-2 hover:bg-primary/40"
-                      }`}
-                      onClick={() => setHeroIndex(i)}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-          </motion.div>
-        )}
       </motion.div>
 
       {/* Bottom fade */}
