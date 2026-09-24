@@ -18,6 +18,8 @@ import { rateLimit, requestIp, tooManyRequests, RATE_LIMITS } from "@/lib/rate-l
 
 export const ADMIN_COOKIE = "pirmam_admin";
 export const SENSITIVE_SETTING_KEYS = ["adminPassword", "adminSecret"];
+/* System-managed records (rate limiting etc.) never shown or writable */
+export const SYSTEM_SETTING_PREFIX = "rl:";
 
 const SESSION_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 const TOKEN_VERSION = "v1";
@@ -137,6 +139,7 @@ export async function prepareSettingsWrite(
   const clean: Record<string, string> = {};
   for (const [key, value] of Object.entries(settings)) {
     if (SENSITIVE_SETTING_KEYS.includes(key)) continue;
+    if (key.startsWith(SYSTEM_SETTING_PREFIX)) continue;
     if (typeof value === "string") clean[key] = value;
   }
   if (typeof settings.adminPassword === "string" && settings.adminPassword) {
@@ -152,7 +155,9 @@ export function stripSensitiveSettings(
 ): Record<string, string> {
   const map: Record<string, string> = {};
   for (const s of settings) {
-    if (!SENSITIVE_SETTING_KEYS.includes(s.key)) map[s.key] = s.value;
+    if (SENSITIVE_SETTING_KEYS.includes(s.key)) continue;
+    if (s.key.startsWith(SYSTEM_SETTING_PREFIX)) continue;
+    map[s.key] = s.value;
   }
   return map;
 }
